@@ -1,0 +1,1166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deutsch von Null</title>
+<style>
+:root{--bg:#e9eef3;--card:#fbfcfd;--ink:#14213d;--mut:#5b6679;--line:#cfd7e2;--acc:#14213d;--onacc:#fff;--ok:#1d7a46;--bad:#b3261e;--m:#1f5fbf;--f:#c2362b;--n:#2b8a57;--gold:#e8b100;color-scheme:light dark}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1522;--card:#17212f;--ink:#eaf0f8;--mut:#98a6bb;--line:#2a374a;--acc:#e8b100;--onacc:#14213d;--ok:#5fd18f;--bad:#ff8f86;--m:#7fb0ff;--f:#ff938a;--n:#6fd6a0}}
+*{box-sizing:border-box}
+html{background:var(--bg);-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Avenir Next","Segoe UI",system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:16px 16px 48px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0 16px}
+h1{font-size:20px;margin:0;letter-spacing:-.01em}
+.stats{display:flex;gap:14px;font-size:14px;color:var(--mut)}
+.stats b{color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:14px}
+.de{font-size:44px;font-weight:700;line-height:1.1;margin:4px 0 6px;letter-spacing:-.02em}
+.m{color:var(--m)}.f{color:var(--f)}.n{color:var(--n)}
+.pron{font-size:20px;color:var(--mut)}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:14px 0;font-size:15px}
+.meta dt{color:var(--mut)}.meta dd{margin:0}
+.tip{border-left:3px solid var(--gold);padding:2px 12px;margin:14px 0;font-size:15px}
+button{font:inherit;min-height:44px;touch-action:manipulation;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 16px}
+button:hover{border-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+button.p{background:var(--acc);color:var(--onacc);border-color:var(--acc);font-weight:600}
+button:disabled{opacity:.5;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+input[type=text],textarea{font:inherit;width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+textarea{min-height:110px;font-size:16px;font-family:ui-monospace,Menlo,monospace}
+.q{font-size:20px;margin:6px 0 14px}
+.tag{font-size:13px;color:var(--mut)}
+.bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:14px}
+.bar i{display:block;height:100%;background:var(--gold)}
+.fb{padding:12px 14px;border-radius:10px;margin-top:14px;font-size:15px}
+.fb.ok{background:color-mix(in srgb,var(--ok) 15%,transparent);border:1px solid var(--ok)}
+.fb.bad{background:color-mix(in srgb,var(--bad) 13%,transparent);border:1px solid var(--bad)}
+.fb div{margin:3px 0}
+.tiles button{padding:8px 12px}
+.tray{min-height:48px;border:1px dashed var(--line);border-radius:10px;padding:6px;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.lesson{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.lesson h3{margin:0;font-size:17px}
+.lesson p{margin:2px 0 0;color:var(--mut);font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
+.sent{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.sent small{display:block;color:var(--mut)}
+.note{font-size:13px;color:var(--mut)}
+.hit{color:var(--ok);font-weight:600}.miss{color:var(--bad);font-weight:600;text-decoration:underline wavy}
+@media(prefers-reduced-motion:no-preference){.bar i{transition:width .3s}}
+</style>
+</head>
+<body>
+<main>
+<header><h1>Deutsch von Null</h1><div class="stats" id="stats"></div></header>
+<div id="app"></div>
+<p class="note" id="audioNote"></p>
+</main>
+<script>
+/* ---------- Curriculum (data-driven: add lessons here) ---------- */
+const LESSONS=[
+{id:1,title:"Hallo! First words",goal:"Greet someone and say what something is.",
+ items:[
+  {id:'hallo',de:'Hallo',en:'hello',acc:['hello','hi'],pron:'HAH-loh',type:'greeting',ex:'Hallo!',exEn:'Hello!',tip:'Stress the first syllable. The h is a light breath, like in English “hello”.'},
+  {id:'haus',art:'das',de:'Haus',en:'the house',acc:['house','the house'],pron:'dahs HOWSS',type:'noun',gender:'neuter',plural:'die Häuser',ex:'Das ist das Haus.',exEn:'That is the house.',tip:'“au” sounds like “ow” in “cow”. The s at the end is sharp, like in “hiss”.'},
+  {id:'frau',art:'die',de:'Frau',en:'the woman',acc:['woman','the woman'],pron:'dee FROW',type:'noun',gender:'feminine',plural:'die Frauen',ex:'Das ist die Frau.',exEn:'That is the woman.',tip:'Same “au” as in Haus. The r is made softly at the back of the throat.'},
+  {id:'dasist',de:'Das ist …',en:'That is … / This is …',acc:['that is','this is','thats','that s'],pron:'dahs isst',type:'sentence pattern',ex:'Das ist das Haus.',exEn:'That is the house.',tip:'Word order: Das (that) + ist (is) + the thing. Das is also the neuter article, but here it means “that”.',parts:'Das = that · ist = is · das Haus = the house'}
+ ],
+ sents:[
+  {de:'Das ist das Haus.',en:'That is the house.',it:'haus',bl:2},
+  {de:'Das ist die Frau.',en:'That is the woman.',it:'frau',bl:2}
+ ]},
+{id:2,title:"Wo ist …? Asking and answering",goal:"Ask where something is and answer. Reuses das Haus, die Frau and Das ist.",
+ items:[
+  {id:'tuer',art:'die',de:'Tür',en:'the door',acc:['door','the door'],pron:'dee TÜÜR',type:'noun',gender:'feminine',plural:'die Türen',ex:'Das ist die Tür.',exEn:'That is the door.',tip:'ü: shape your lips as for “oo”, then say “ee” without moving them.'},
+  {id:'wo',de:'Wo ist …?',en:'Where is …?',acc:['where is'],pron:'voh isst',type:'question pattern',ex:'Wo ist die Frau?',exEn:'Where is the woman?',tip:'German w sounds like English v. The verb ist comes second, right after Wo.',parts:'Wo = where · ist = is · die Frau = the woman'},
+  {id:'hier',de:'Hier ist …',en:'Here is …',acc:['here is'],pron:'heer isst',type:'sentence pattern',ex:'Hier ist die Frau.',exEn:'Here is the woman.',tip:'“ie” is a long “ee”. Again ist stays in second position.',parts:'Hier = here · ist = is · die Frau = the woman'}
+ ],
+ sents:[
+  {de:'Wo ist die Frau?',en:'Where is the woman?',it:'frau',bl:2},
+  {de:'Hier ist die Frau.',en:'Here is the woman.',it:'frau',bl:2},
+  {de:'Wo ist das Haus?',en:'Where is the house?',it:'haus',bl:2},
+  {de:'Hier ist die Tür.',en:'Here is the door.',it:'tuer',bl:2}
+ ]}
+];
+LESSONS.push(
+{id:3,title:"Ein or eine? A and an",goal:"Say “a house” or “a woman” and answer yes or no. Reuses das Haus, die Frau, die Tür and Das ist.",
+ note:'A yes/no question starts with the verb: <b>Ist</b> das …? Use <b>ein</b> before das nouns and <b>eine</b> before die nouns.',
+ items:[
+  {id:'ein',de:'ein / eine',en:'a / an',acc:['a','an','a an','a / an','a/an'],accDe:['ein eine','ein/eine'],pron:'ine / INE-uh',type:'indefinite article',ex:'Das ist ein Haus.',exEn:'That is a house.',tip:'“ei” sounds like English “eye”, so ein is “ine”. Use ein with das and der nouns, eine with die nouns.',parts:'ein Haus (das) · eine Frau (die) · eine Tür (die)'},
+  {id:'ja',de:'Ja',en:'yes',acc:['yes'],pron:'yah',type:'answer word',ex:'Ja, das ist die Frau.',exEn:'Yes, that is the woman.',tip:'German j sounds like English y, so Ja is “yah”.'},
+  {id:'nein',de:'Nein',en:'no',acc:['no'],pron:'nine',type:'answer word',ex:'Nein, das ist die Tür.',exEn:'No, that is the door.',tip:'Same “ei” as in ein, like English “eye”.'}
+ ],
+ sents:[
+  {de:'Das ist ein Haus.',en:'That is a house.',it:'ein',bl:2,why:'Haus is neuter (das Haus), so a/an is <b>ein</b>.'},
+  {de:'Das ist eine Frau.',en:'That is a woman.',it:'ein',bl:2,why:'Frau is feminine (die Frau), so a/an is <b>eine</b>.'},
+  {de:'Ist das eine Tür?',en:'Is that a door?',it:'ein',bl:2,why:'Tür is feminine (die Tür), so a/an is <b>eine</b>.'},
+  {de:'Ja, das ist die Tür.',en:'Yes, that is the door.',it:'ja'},
+  {de:'Nein, das ist das Haus.',en:'No, that is the house.',it:'nein'}
+ ]},
+{id:4,title:"Der Mann and Ich bin",goal:"Meet your first masculine noun and say who you are. Reuses ein, eine, Wo ist …? and Das ist.",
+ note:'<b>Ich bin</b> means “I am”. It is the “I” form of sein (to be). The verb stays in second position. Masculine nouns take <b>der</b>, and <b>ein</b> for “a”.',
+ items:[
+  {id:'mann',art:'der',de:'Mann',en:'the man',acc:['man','the man'],pron:'dair MAHN',type:'noun',gender:'masculine',plural:'die Männer',ex:'Das ist der Mann.',exEn:'That is the man.',tip:'Short a, and hold the nn briefly. der is pronounced “dair”.'},
+  {id:'ichbin',de:'Ich bin …',en:'I am …',acc:['i am','im'],pron:'ikh bin',type:'sentence pattern',ex:'Ich bin ein Mann.',exEn:'I am a man.',tip:'ich ends in a soft hiss made with the tongue near the roof of the mouth, close to the h in English “huge”. Do not say “ick”.',parts:'Ich = I · bin = am · ein Mann = a man'},
+  {id:'und',de:'und',en:'and',acc:['and'],pron:'oont',type:'connector',ex:'Der Mann und die Frau.',exEn:'The man and the woman.',tip:'u as in “put”. The final d sounds like t.'}
+ ],
+ sents:[
+  {de:'Das ist der Mann.',en:'That is the man.',it:'mann',bl:2},
+  {de:'Wo ist der Mann?',en:'Where is the man?',it:'mann',bl:2},
+  {de:'Ich bin ein Mann.',en:'I am a man.',it:'ichbin',bl:2,why:'Mann is masculine (der Mann), so a/an is <b>ein</b>.'},
+  {de:'Ich bin eine Frau.',en:'I am a woman.',it:'ichbin',bl:2,why:'Frau is feminine (die Frau), so a/an is <b>eine</b>.'},
+  {de:'Der Mann und die Frau.',en:'The man and the woman.',it:'und'}
+ ]},
+{id:5,title:"Wer ist das? Er and sie",goal:"Ask who someone is and say he or she. Reuses der Mann, die Frau, Wo ist …? and hier.",
+ note:'<b>Er</b> means “he” and <b>sie</b> means “she”. The verb <b>ist</b> stays in second position, right after er or sie. (Sie has other meanings too, which come later.)',
+ items:[
+  {id:'wer',de:'Wer ist das?',en:'Who is that?',acc:['who is that','who is this','whos that','whos this'],pron:'vair isst dahs',type:'question pattern',ex:'Wer ist das?',exEn:'Who is that?',tip:'w is “v” again. The r after e is soft, so Wer sounds like “vair”.',parts:'Wer = who · ist = is · das = that'},
+  {id:'er',de:'Er',en:'he',acc:['he'],pron:'air',type:'pronoun',ex:'Er ist hier.',exEn:'He is here.',tip:'Say “air” with a very soft r. Er replaces der Mann.'},
+  {id:'sie',de:'Sie',en:'she',acc:['she'],pron:'zee',type:'pronoun',ex:'Sie ist hier.',exEn:'She is here.',tip:'German s before a vowel is voiced like English z, and ie is a long “ee”. Sie replaces die Frau.'}
+ ],
+ sents:[
+  {de:'Wer ist das?',en:'Who is that?',it:'wer'},
+  {de:'Er ist der Mann.',en:'He is the man.',it:'er',bl:2},
+  {de:'Sie ist die Frau.',en:'She is the woman.',it:'sie',bl:2},
+  {de:'Wo ist er?',en:'Where is he?',it:'er',bwhy:'Question words like Wo come first, then the verb ist, then the subject.'},
+  {de:'Sie ist eine Frau.',en:'She is a woman.',it:'sie',bl:2,why:'Frau is feminine (die Frau), so a/an is <b>eine</b>.'}
+ ]}
+);
+LESSONS.push(
+{id:6,title:"Guten Tag! Manners",goal:"Greet politely, say thank you and say please. Reuses Hallo, Ja, Nein and die Frau.",
+ note:'<b>Guten Tag</b> is the polite daytime greeting. <b>Hallo</b> is casual. <b>Bitte</b> means both “please” and “you are welcome”.',
+ items:[
+  {id:'gutentag',de:'Guten Tag',en:'Good day / Hello (polite)',acc:['good day','hello','good afternoon','hello polite'],pron:'GOO-ten TAHK',type:'greeting',ex:'Guten Tag, Frau Müller.',exEn:'Good day, Ms Müller.',tip:'g is hard, as in “go”. The final g in Tag sounds like k.'},
+  {id:'danke',de:'Danke',en:'thank you / thanks',acc:['thanks','thank you'],pron:'DAHN-kuh',type:'manners',ex:'Nein, danke.',exEn:'No, thank you.',tip:'The final e is a short, relaxed “uh”. Stress the first syllable.'},
+  {id:'bitte',de:'Bitte',en:'please / you are welcome',acc:['please','you are welcome','youre welcome','you re welcome'],pron:'BIT-tuh',type:'manners',ex:'Ja, bitte.',exEn:'Yes, please.',tip:'Short i as in “bit”, and a relaxed “uh” at the end.'}
+ ],
+ sents:[
+  {de:'Guten Tag!',en:'Good day!',it:'gutentag'},
+  {de:'Guten Tag, Frau Müller.',en:'Good day, Ms Müller.',it:'gutentag'},
+  {de:'Danke, Frau Müller.',en:'Thank you, Ms Müller.',it:'danke'},
+  {de:'Nein, danke.',en:'No, thank you.',it:'danke'},
+  {de:'Ja, bitte.',en:'Yes, please.',it:'bitte'}
+ ]},
+{id:7,title:"Eins, zwei, drei and plurals",goal:"Count to three and talk about more than one thing. Reuses Haus, Frau, Tür and Wo ist …?",
+ note:'With more than one thing, <b>ist</b> becomes <b>sind</b> (are) and the noun is plural. Plurals are mostly irregular, so learn each one with its noun.',
+ plurals:['haus','frau','tuer','mann'],
+ items:[
+  {id:'eins',de:'eins',en:'one',acc:['one','1'],pron:'ines',type:'number',ex:'Eins, zwei, drei.',exEn:'One, two, three.',tip:'ei sounds like English “eye”. The s at the end is sharp.'},
+  {id:'zwei',de:'zwei',en:'two',acc:['two','2'],pron:'tsvy',type:'number',ex:'Hier sind zwei Frauen.',exEn:'Here are two women.',tip:'German z is “ts”, as in “cats”. Then v, then “eye”.'},
+  {id:'drei',de:'drei',en:'three',acc:['three','3'],pron:'dry',type:'number',ex:'Das sind drei Häuser.',exEn:'Those are three houses.',tip:'Say “dry” with a soft German r made at the back of the throat.'}
+ ],
+ sents:[
+  {de:'Eins, zwei, drei.',en:'One, two, three.',it:'eins'},
+  {de:'Hier sind zwei Frauen.',en:'Here are two women.',it:'zwei',bwhy:'With more than one thing, ist becomes sind and the noun is plural: zwei Frauen.'},
+  {de:'Das sind drei Häuser.',en:'Those are three houses.',it:'drei',bwhy:'Das sind … is the plural of Das ist …, and Haus becomes Häuser.'},
+  {de:'Wo sind die Türen?',en:'Where are the doors?',it:'wo',bwhy:'Wo sind … is the plural of Wo ist …. The verb stays in second position.'},
+  {de:'Hier sind zwei Türen.',en:'Here are two doors.',it:'zwei',bwhy:'zwei is followed by a plural noun: Türen.'}
+ ]},
+{id:8,title:"Die Familie",goal:"Talk about your family. Reuses der Mann, die Frau, Ich bin …, und and sind.",
+ note:'Family words have fixed genders: <b>der</b> Vater, <b>die</b> Mutter, <b>die</b> Familie. Say each one with its article every time.',
+ plurals:['mutter','vater','familie'],
+ items:[
+  {id:'familie',art:'die',de:'Familie',en:'the family',acc:['family','the family'],pron:'dee fah-MEE-lee-uh',type:'noun',gender:'feminine',plural:'die Familien',ex:'Das ist die Familie.',exEn:'That is the family.',tip:'Stress the second syllable (mee). The ending -ie is said “ee-uh”.'},
+  {id:'mutter',art:'die',de:'Mutter',en:'the mother',acc:['mother','the mother','mum','mom'],pron:'dee MUT-ter',type:'noun',gender:'feminine',plural:'die Mütter',ex:'Das ist die Mutter.',exEn:'That is the mother.',tip:'Short u as in “put”, and hold the tt briefly. The final -er is a relaxed “uh”.'},
+  {id:'vater',art:'der',de:'Vater',en:'the father',acc:['father','the father','dad'],pron:'dair FAH-ter',type:'noun',gender:'masculine',plural:'die Väter',ex:'Das ist der Vater.',exEn:'That is the father.',tip:'German V is usually pronounced like English f.'}
+ ],
+ sents:[
+  {de:'Das ist die Mutter.',en:'That is the mother.',it:'mutter',bl:2},
+  {de:'Das ist der Vater.',en:'That is the father.',it:'vater',bl:2},
+  {de:'Wo ist die Familie?',en:'Where is the family?',it:'familie',bl:2},
+  {de:'Ich bin der Vater.',en:'I am the father.',it:'vater',bl:2},
+  {de:'Der Vater und die Mutter sind hier.',en:'The father and the mother are here.',it:'und',bwhy:'Two people means sind, not ist.'}
+ ]},
+{id:9,title:"Brot, Wasser, Milch",goal:"Name basic food and drink and ask for it politely. Reuses Das ist …, Wo ist …?, Ja, Nein, danke and bitte.",
+ note:'When you ask for something, you can drop the article: <b>Wasser, bitte.</b>',
+ plurals:['brot'],
+ items:[
+  {id:'brot',art:'das',de:'Brot',en:'the bread',acc:['bread','the bread'],pron:'dahs BROHT',type:'noun',gender:'neuter',plural:'die Brote',ex:'Das ist das Brot.',exEn:'That is the bread.',tip:'Long o, and a crisp t at the end.'},
+  {id:'wasser',art:'das',de:'Wasser',en:'the water',acc:['water','the water'],pron:'dahs VAH-ser',type:'noun',gender:'neuter',ex:'Das ist das Wasser.',exEn:'That is the water.',tip:'w sounds like v. The final -er is a relaxed “uh”. Water has no common plural.'},
+  {id:'milch',art:'die',de:'Milch',en:'the milk',acc:['milk','the milk'],pron:'dee MILKH',type:'noun',gender:'feminine',ex:'Das ist die Milch.',exEn:'That is the milk.',tip:'ch after i is the soft hiss from ich, not a k. Milk has no common plural.'}
+ ],
+ sents:[
+  {de:'Das ist das Brot.',en:'That is the bread.',it:'brot',bl:2},
+  {de:'Das ist die Milch.',en:'That is the milk.',it:'milch',bl:2},
+  {de:'Wo ist das Wasser?',en:'Where is the water?',it:'wasser',bl:2},
+  {de:'Wasser, bitte.',en:'Water, please.',it:'wasser',bwhy:'When ordering, German often drops the article.'},
+  {de:'Ja, bitte, das Brot.',en:'Yes, please, the bread.',it:'brot'}
+ ]},
+{id:10,title:"Boss round: Die Familie zu Hause",goal:"No new words. Combine everything from Lessons 1 to 9 in one story about a family.",
+ note:'Everything here is old vocabulary. Watch the verb position, <b>ist</b> versus <b>sind</b>, and the article for each noun.',
+ plurals:['haus','mutter','vater'],
+ items:[],
+ sents:[
+  {de:'Wo ist die Mutter?',en:'Where is the mother?',it:'mutter',bl:2},
+  {de:'Sie ist hier.',en:'She is here.',it:'sie'},
+  {de:'Er ist der Vater.',en:'He is the father.',it:'vater',bl:2},
+  {de:'Das ist eine Familie.',en:'That is a family.',it:'familie',bl:2,why:'Familie is feminine (die Familie), so a/an is <b>eine</b>.'},
+  {de:'Hier sind zwei Frauen und ein Mann.',en:'Here are two women and a man.',it:'zwei',bwhy:'Two or more people means sind. und joins the two groups.'},
+  {de:'Ja, bitte, das Wasser.',en:'Yes, please, the water.',it:'wasser'}
+ ]}
+);
+LESSONS.push(
+{id:11,title:"Du bist, ich heiße",goal:"Talk to one person informally and say your name. Reuses Ich bin …, Wer ist das?, ja and die Mutter.",
+ note:'<b>Sein</b> (to be) so far: <b>ich bin</b>, <b>du bist</b>, <b>er / sie ist</b>. <b>Du</b> is for friends, family and children. The polite <b>Sie</b> comes later. A yes/no question starts with the verb: <b>Bist</b> du …?',
+ items:[
+  {id:'du',de:'du',en:'you (informal)',acc:['you','you informal'],pron:'doo',type:'pronoun',ex:'Wer bist du?',exEn:'Who are you?',tip:'Long u, like “oo” in “moon”. Use du with friends, family and children.'},
+  {id:'dubist',de:'Du bist …',en:'You are …',acc:['you are','youre','you re'],pron:'doo bist',type:'sentence pattern',ex:'Du bist die Mutter.',exEn:'You are the mother.',tip:'Short i as in “bit”. Say the final st clearly.',parts:'Du = you · bist = are · die Mutter = the mother'},
+  {id:'heisse',de:'Ich heiße …',en:'My name is …',acc:['my name is','i am called','i am named','im called'],pron:'ikh HY-suh',type:'sentence pattern',ex:'Ich heiße Anna.',exEn:'My name is Anna.',tip:'ß is a sharp s, as in “hiss”. ei sounds like “eye”. Literally it means “I am called”.',parts:'Ich = I · heiße = am called · Anna = a name'}
+ ],
+ sents:[
+  {de:'Du bist ein Mann.',en:'You are a man.',it:'dubist',bl:2,why:'Mann is masculine (der Mann), so a/an is <b>ein</b>.'},
+  {de:'Du bist die Mutter.',en:'You are the mother.',it:'dubist',bl:2},
+  {de:'Bist du die Mutter?',en:'Are you the mother?',it:'du',bl:2},
+  {de:'Ja, ich bin die Mutter.',en:'Yes, I am the mother.',it:'ichbin'},
+  {de:'Ich heiße Anna.',en:'My name is Anna.',it:'heisse'},
+  {de:'Wer bist du?',en:'Who are you?',it:'wer',bwhy:'The question word Wer comes first, then the verb bist, then du.'}
+ ]},
+{id:12,title:"Vier, fünf, sechs",goal:"Count a little higher and count people and things. Reuses sind, plurals and Hier sind …",
+ note:'After a number above one, the noun is plural and the verb is <b>sind</b>: vier Männer, fünf Türen.',
+ plurals:['tuer','brot','frau'],
+ items:[
+  {id:'vier',de:'vier',en:'four',acc:['four','4'],pron:'feer',type:'number',ex:'Hier sind vier Männer.',exEn:'Here are four men.',tip:'v is pronounced like f here, and ie is a long “ee”.'},
+  {id:'fuenf',de:'fünf',en:'five',acc:['five','5'],pron:'fuunf',type:'number',ex:'Das sind fünf Türen.',exEn:'Those are five doors.',tip:'ü as in Tür: lips round, say “ee”. The word ends in a clear f.'},
+  {id:'sechs',de:'sechs',en:'six',acc:['six','6'],pron:'zeks',type:'number',ex:'Hier sind sechs Brote.',exEn:'Here are six loaves of bread.',tip:'s is voiced like z, and chs sounds like “ks”.'}
+ ],
+ sents:[
+  {de:'Eins, zwei, drei, vier.',en:'One, two, three, four.',it:'vier'},
+  {de:'Hier sind vier Männer.',en:'Here are four men.',it:'vier',bwhy:'vier is followed by a plural noun, and ist becomes sind.'},
+  {de:'Das sind fünf Türen.',en:'Those are five doors.',it:'fuenf',bwhy:'Das sind … is the plural of Das ist ….'},
+  {de:'Wo sind die sechs Häuser?',en:'Where are the six houses?',it:'sechs',bwhy:'Wo sind … is the plural of Wo ist ….'},
+  {de:'Hier sind sechs Brote.',en:'Here are six loaves of bread.',it:'sechs',bwhy:'Brot becomes Brote in the plural.'}
+ ]},
+{id:13,title:"Ich habe das Buch",goal:"Say what you have, using haben. Reuses das, die, eine, Frau and Hast du …?",
+ note:'<b>Haben</b> (to have): <b>ich habe</b>, <b>du hast</b>, <b>er / sie hat</b>. For now we use only das and die nouns after it. Masculine nouns change after haben, and that comes in a later lesson.',
+ plurals:['buch','tasche'],
+ items:[
+  {id:'ichhabe',de:'Ich habe …',en:'I have …',acc:['i have','ive'],pron:'ikh HAH-buh',type:'sentence pattern',ex:'Ich habe das Buch.',exEn:'I have the book.',tip:'The first a is long: “HAH-buh”. The b is a normal b.',parts:'Ich = I · habe = have · das Buch = the book'},
+  {id:'buch',art:'das',de:'Buch',en:'the book',acc:['book','the book'],pron:'dahs BOOKH',type:'noun',gender:'neuter',plural:'die Bücher',ex:'Ich habe das Buch.',exEn:'I have the book.',tip:'Long u, then a harsh ch from the back of the throat, like softly clearing it.'},
+  {id:'tasche',art:'die',de:'Tasche',en:'the bag',acc:['bag','the bag','handbag'],pron:'dee TAH-shuh',type:'noun',gender:'feminine',plural:'die Taschen',ex:'Ich habe die Tasche.',exEn:'I have the bag.',tip:'sch is like English sh. The final -e is a relaxed “uh”.'}
+ ],
+ sents:[
+  {de:'Ich habe das Buch.',en:'I have the book.',it:'buch',bl:2},
+  {de:'Ich habe die Tasche.',en:'I have the bag.',it:'tasche',bl:2},
+  {de:'Ich habe eine Tasche.',en:'I have a bag.',it:'ichhabe',bl:2,why:'Tasche is feminine (die Tasche), so a/an is <b>eine</b>.'},
+  {de:'Sie hat die Tasche.',en:'She has the bag.',it:'tasche',bl:2,bwhy:'With sie (she) the verb is hat, not habe.'},
+  {de:'Hast du das Buch?',en:'Do you have the book?',it:'buch',bl:2,bwhy:'A yes/no question starts with the verb: Hast du …?'}
+ ]},
+{id:14,title:"Groß, klein, nicht",goal:"Describe things and say what they are not. Reuses Haus, Tür, ist, Ja and Nein.",
+ note:'After <b>ist</b>, an adjective does not change: <b>Das Haus ist groß.</b> <b>Nicht</b> (not) goes before the adjective.',
+ items:[
+  {id:'gross',de:'groß',en:'big / large',acc:['big','large','tall'],pron:'grohss',type:'adjective',ex:'Das Haus ist groß.',exEn:'The house is big.',tip:'ß is a sharp s, and the o is long. Groß can also be written gross.'},
+  {id:'klein',de:'klein',en:'small',acc:['small','little'],pron:'kline',type:'adjective',ex:'Die Tür ist klein.',exEn:'The door is small.',tip:'ei sounds like English “eye”, so klein is “kline”.'},
+  {id:'nicht',de:'nicht',en:'not',acc:['not'],pron:'nikht',type:'negation',ex:'Das Haus ist nicht klein.',exEn:'The house is not small.',tip:'ch after i is the soft hiss from ich.'}
+ ],
+ sents:[
+  {de:'Das Haus ist groß.',en:'The house is big.',it:'gross',bwhy:'The adjective comes after ist and does not change.'},
+  {de:'Die Tür ist klein.',en:'The door is small.',it:'klein',bwhy:'The adjective comes after ist and does not change.'},
+  {de:'Ist die Tür groß?',en:'Is the door big?',it:'gross',bl:1,why:'Tür is feminine (die Tür).'},
+  {de:'Nein, die Tür ist nicht groß.',en:'No, the door is not big.',it:'nicht',bwhy:'nicht goes right before the adjective.'},
+  {de:'Ist das Haus klein?',en:'Is the house small?',it:'klein',bl:1,why:'Haus is neuter (das Haus).'},
+  {de:'Das Haus ist nicht klein.',en:'The house is not small.',it:'nicht',bwhy:'nicht goes right before the adjective.'}
+ ]},
+{id:15,title:"Boss round: Die Familie hat ein Haus",goal:"No new words. Combine Lessons 11 to 14 with everything before them.",
+ note:'All old vocabulary. Check the verb position, <b>ist</b> versus <b>sind</b>, <b>habe</b> versus <b>hat</b>, and the article for each noun.',
+ plurals:['buch','tasche','tuer'],
+ items:[],
+ sents:[
+  {de:'Wer bist du?',en:'Who are you?',it:'du'},
+  {de:'Ich bin die Mutter.',en:'I am the mother.',it:'mutter',bl:2},
+  {de:'Du hast das Buch.',en:'You have the book.',it:'buch',bl:2},
+  {de:'Die Familie hat ein Haus.',en:'The family has a house.',it:'familie',bl:3,why:'Haus is neuter (das Haus), so a/an is <b>ein</b>.'},
+  {de:'Das Haus ist groß, und die Tür ist klein.',en:'The house is big, and the door is small.',it:'gross',bwhy:'und joins two full sentences, and each one keeps ist in second position.'},
+  {de:'Hier sind vier Männer und fünf Frauen.',en:'Here are four men and five women.',it:'vier',bwhy:'More than one person means sind, and the nouns are plural.'},
+  {de:'Hast du die Tasche?',en:'Do you have the bag?',it:'tasche',bl:2}
+ ]}
+);
+LESSONS.push(
+{id:16,title:"Der Apfel, den Apfel",goal:"Meet the accusative case: masculine nouns change when they are the object. Reuses Ich habe …, die Milch and Hast du …?",
+ note:'The <b>accusative</b> marks the thing something happens to, such as the thing you have. Only masculine changes: <b>der → den</b>. <b>Die</b> and <b>das</b> stay the same. As the subject, der stays der: <b>Der Apfel ist hier.</b>',
+ plurals:['apfel'],
+ items:[
+  {id:'apfel',art:'der',de:'Apfel',en:'the apple',acc:['apple','the apple'],pron:'dair AHP-fel',type:'noun',gender:'masculine',plural:'die Äpfel',ex:'Der Apfel ist hier.',exEn:'The apple is here.',tip:'pf: close the lips for p and release straight into f. Stress the first syllable.'},
+  {id:'kaffee',art:'der',de:'Kaffee',en:'the coffee',acc:['coffee','the coffee'],pron:'dair KAH-fay',type:'noun',gender:'masculine',plural:'die Kaffees',ex:'Ich habe den Kaffee.',exEn:'I have the coffee.',tip:'Stress the first syllable. The ending ee sounds like a long “ay”.'},
+  {id:'den',de:'den',en:'the (masculine, as object)',acc:['the'],pron:'dayn',type:'article, accusative',ex:'Ich habe den Apfel.',exEn:'I have the apple.',tip:'Long e. Use den instead of der when a masculine noun is the object.'}
+ ],
+ sents:[
+  {de:'Ich habe den Apfel.',en:'I have the apple.',it:'apfel',bl:2,ch:['der','den','die','das'],why:'Apfel is masculine (der Apfel). It is the object of habe, so der becomes <b>den</b>.'},
+  {de:'Ich habe den Kaffee.',en:'I have the coffee.',it:'kaffee',bl:2,ch:['der','den','die','das'],why:'Kaffee is masculine (der Kaffee). As the object, der becomes <b>den</b>.'},
+  {de:'Der Apfel ist hier.',en:'The apple is here.',it:'apfel',bwhy:'As the subject, der stays der. Only objects change.'},
+  {de:'Ich habe die Milch.',en:'I have the milk.',it:'milch',bl:2,ch:['der','den','die','das'],why:'Milch is feminine (die Milch). Feminine nouns do not change, so die stays <b>die</b>.'},
+  {de:'Hast du den Kaffee?',en:'Do you have the coffee?',it:'kaffee',bl:2,ch:['der','den','die','das'],why:'Kaffee is masculine and is the object, so der becomes <b>den</b>.'}
+ ]},
+{id:17,title:"Einen or ein?",goal:"Use a/an with masculine objects. Reuses den, Apfel, Kaffee and Ich habe …",
+ note:'Same rule for <b>ein</b>: as an object, masculine <b>ein → einen</b>. <b>Eine</b> and <b>ein</b> for feminine and neuter stay the same. As a subject: <b>Das ist ein Tisch.</b> No change.',
+ plurals:['tisch'],
+ items:[
+  {id:'einen',de:'einen',en:'a / an (masculine, as object)',acc:['a','an','a an'],pron:'EYE-nen',type:'article, accusative',ex:'Ich habe einen Apfel.',exEn:'I have an apple.',tip:'ei sounds like “eye”. Use einen for a masculine noun that is the object.'},
+  {id:'tee',art:'der',de:'Tee',en:'the tea',acc:['tea','the tea'],pron:'dair TAY',type:'noun',gender:'masculine',plural:'die Tees',ex:'Ich habe einen Tee.',exEn:'I have a tea.',tip:'Long e, like “ay” in “day”.'},
+  {id:'tisch',art:'der',de:'Tisch',en:'the table',acc:['table','the table'],pron:'dair TISH',type:'noun',gender:'masculine',plural:'die Tische',ex:'Das ist ein Tisch.',exEn:'That is a table.',tip:'Short i, and sch is like English sh.'}
+ ],
+ sents:[
+  {de:'Ich habe einen Apfel.',en:'I have an apple.',it:'einen',bl:2,ch:['ein','eine','einen'],why:'Apfel is masculine (der Apfel) and is the object, so ein becomes <b>einen</b>.'},
+  {de:'Ich habe einen Tee.',en:'I have a tea.',it:'tee',bl:2,ch:['ein','eine','einen'],why:'Tee is masculine (der Tee) and is the object, so it is <b>einen</b>.'},
+  {de:'Das ist ein Tisch.',en:'That is a table.',it:'tisch',bl:2,ch:['ein','eine','einen'],why:'After Das ist … the noun is the subject, so there is no change: <b>ein</b> Tisch.'},
+  {de:'Hast du einen Tisch?',en:'Do you have a table?',it:'tisch',bl:2,ch:['ein','eine','einen'],why:'Tisch is masculine and is the object of hast, so it is <b>einen</b>.'},
+  {de:'Ich habe ein Buch.',en:'I have a book.',it:'buch',bl:2,ch:['ein','eine','einen'],why:'Buch is neuter (das Buch). Neuter does not change, so it stays <b>ein</b>.'}
+ ]},
+{id:18,title:"Ich möchte … Ordering",goal:"Ask politely for what you want. Reuses den, einen, Kaffee, Tee, Milch, Wasser and bitte.",
+ note:'<b>Möchte</b> (would like) is the polite way to ask: <b>ich möchte</b>, <b>er / sie möchte</b>, <b>du möchtest</b>. The thing you want is the object, so masculine takes den or einen.',
+ plurals:['glas','saft'],
+ items:[
+  {id:'moechte',de:'Ich möchte …',en:'I would like …',acc:['i would like','id like','i d like','i want'],pron:'ikh MUHKH-tuh',type:'sentence pattern',ex:'Ich möchte einen Tee, bitte.',exEn:'I would like a tea, please.',tip:'ö: round the lips as for “oh” and say “ay”. ch is the soft hiss from ich.',parts:'Ich = I · möchte = would like · einen Tee = a tea'},
+  {id:'saft',art:'der',de:'Saft',en:'the juice',acc:['juice','the juice'],pron:'dair ZAHFT',type:'noun',gender:'masculine',plural:'die Säfte',ex:'Ich möchte den Saft.',exEn:'I would like the juice.',tip:'s before a vowel is voiced like z. Short a, and a crisp ft.'},
+  {id:'glas',art:'das',de:'Glas',en:'the glass',acc:['glass','the glass'],pron:'dahs GLAHSS',type:'noun',gender:'neuter',plural:'die Gläser',ex:'Ich möchte ein Glas Wasser, bitte.',exEn:'I would like a glass of water, please.',tip:'Long a. After a glass of, German just puts the drink next: ein Glas Wasser.'}
+ ],
+ sents:[
+  {de:'Ich möchte den Kaffee.',en:'I would like the coffee.',it:'moechte',bl:2,ch:['der','den','die','das'],why:'Kaffee is masculine and is the object, so der becomes <b>den</b>.'},
+  {de:'Ich möchte einen Tee, bitte.',en:'I would like a tea, please.',it:'moechte',bl:2,ch:['ein','eine','einen'],why:'Tee is masculine and is the object, so it is <b>einen</b>.'},
+  {de:'Ich möchte die Milch, bitte.',en:'I would like the milk, please.',it:'milch',bl:2,ch:['der','den','die','das'],why:'Milch is feminine, so die stays <b>die</b>.'},
+  {de:'Ich möchte ein Glas Wasser, bitte.',en:'I would like a glass of water, please.',it:'glas',bwhy:'Ein Glas Wasser: Glas is neuter, so it is ein, and the drink follows without an article.'},
+  {de:'Möchtest du den Saft?',en:'Would you like the juice?',it:'saft',bl:2,ch:['der','den','die','das'],why:'Saft is masculine and is the object, so der becomes <b>den</b>.'}
+ ]},
+{id:19,title:"Boss round: Im Café",goal:"No new words. Combine the accusative, haben, möchte, numbers and old vocabulary.",
+ note:'Check each noun: <b>der</b> nouns change to <b>den</b> or <b>einen</b> as objects. <b>Die</b> and <b>das</b> nouns stay the same. Subjects never change.',
+ plurals:['apfel','tisch','glas'],
+ items:[],
+ sents:[
+  {de:'Ich habe den Apfel und das Brot.',en:'I have the apple and the bread.',it:'apfel',bwhy:'Apfel is masculine (den as the object). Brot is neuter, so das stays das.'},
+  {de:'Der Vater möchte einen Kaffee.',en:'The father would like a coffee.',it:'kaffee',bl:3,ch:['ein','eine','einen'],why:'Kaffee is masculine and is the object, so it is <b>einen</b>.'},
+  {de:'Die Mutter hat die Tasche.',en:'The mother has the bag.',it:'tasche',bl:3,ch:['der','den','die','das'],why:'Tasche is feminine, so die stays <b>die</b>.'},
+  {de:'Hast du den Tisch?',en:'Do you have the table?',it:'tisch',bl:2,ch:['der','den','die','das'],why:'Tisch is masculine and is the object, so der becomes <b>den</b>.'},
+  {de:'Nein, ich habe das Buch.',en:'No, I have the book.',it:'buch',bwhy:'After Nein, the sentence is normal: ich habe, with the verb second in its own clause.'},
+  {de:'Ich möchte den Saft, bitte.',en:'I would like the juice, please.',it:'saft',bl:2,ch:['der','den','die','das'],why:'Saft is masculine and is the object, so der becomes <b>den</b>.'},
+  {de:'Der Mann hat einen Apfel.',en:'The man has an apple.',it:'einen',bl:3,ch:['ein','eine','einen'],why:'Apfel is masculine and is the object, so it is <b>einen</b>.'}
+ ]},
+{id:20,title:"Wie geht’s? Small talk",goal:"Ask how someone is and answer. Learn these as fixed phrases. Reuses Hallo, danke, nicht, Ja and Nein.",
+ note:'<b>Wie geht’s?</b> and <b>Und dir?</b> are fixed phrases for now. <b>Dir</b> is a new case form, which comes in a later lesson, so learn it as a block. <b>Gut</b> also works as an adjective: <b>Das Brot ist gut.</b>',
+ items:[
+  {id:'wiegehts',de:'Wie geht’s?',en:'How are you? / How is it going?',acc:['how are you','how is it going','hows it going','how are things'],pron:'vee GAYTS',type:'question phrase',ex:'Hallo, wie geht’s?',exEn:'Hello, how are you?',tip:'w is “v” and ie is a long “ee”. The ending sounds like “gayts”. This is the informal form.'},
+  {id:'gut',de:'gut',en:'good / well',acc:['good','well','fine'],pron:'goot',type:'adjective',ex:'Gut, danke.',exEn:'Well, thanks.',tip:'Hard g and a long u, like “oo” in “moon”.'},
+  {id:'unddir',de:'Und dir?',en:'And you? (informal)',acc:['and you','and you informal'],pron:'oont DEER',type:'question phrase',ex:'Gut, danke. Und dir?',exEn:'Well, thanks. And you?',tip:'ie is a long “ee” and the r is soft. Use this with someone you call du.'}
+ ],
+ sents:[
+  {de:'Hallo, wie geht’s?',en:'Hello, how are you?',it:'wiegehts'},
+  {de:'Gut, danke. Und dir?',en:'Well, thanks. And you?',it:'unddir'},
+  {de:'Nicht gut, danke.',en:'Not well, thanks.',it:'gut',bwhy:'nicht goes right before gut.'},
+  {de:'Das Brot ist gut.',en:'The bread is good.',it:'gut',bwhy:'After ist, the adjective does not change.'},
+  {de:'Die Milch ist nicht gut.',en:'The milk is not good.',it:'nicht',bwhy:'nicht goes right before the adjective.'}
+ ]}
+);
+LESSONS.push(
+{id:21,title:"Sieben bis zehn",goal:"Count to ten and count real things. Reuses sind, plurals, Äpfel, Tische, Bücher and Gläser.",
+ note:'Numbers: 7 <b>sieben</b>, 8 <b>acht</b>, 9 <b>neun</b>, 10 <b>zehn</b>. Plural nouns do not change when they are the object: <b>Ich habe neun Bücher.</b>',
+ plurals:['apfel','buch'],
+ items:[
+  {id:'sieben',de:'sieben',en:'seven',acc:['seven','7'],pron:'ZEE-ben',type:'number',ex:'Hier sind sieben Äpfel.',exEn:'Here are seven apples.',tip:'s before a vowel is voiced like z, and ie is a long “ee”.'},
+  {id:'acht',de:'acht',en:'eight',acc:['eight','8'],pron:'ahkht',type:'number',ex:'Das sind acht Tische.',exEn:'Those are eight tables.',tip:'ch after a is a harsh sound from the back of the throat, not a k.'},
+  {id:'neun',de:'neun',en:'nine',acc:['nine','9'],pron:'noyn',type:'number',ex:'Ich habe neun Bücher.',exEn:'I have nine books.',tip:'eu sounds like “oy” in “boy”.'},
+  {id:'zehn',de:'zehn',en:'ten',acc:['ten','10'],pron:'tsayn',type:'number',ex:'Wo sind die zehn Gläser?',exEn:'Where are the ten glasses?',tip:'z is “ts”. The e is long, and the h is silent.'}
+ ],
+ sents:[
+  {de:'Hier sind sieben Äpfel.',en:'Here are seven apples.',it:'sieben',bwhy:'Sieben is followed by a plural noun: Äpfel. Ist becomes sind.'},
+  {de:'Das sind acht Tische.',en:'Those are eight tables.',it:'acht',bwhy:'Das sind … is the plural of Das ist ….'},
+  {de:'Ich habe neun Bücher.',en:'I have nine books.',it:'neun',bwhy:'Plural nouns do not change as objects: neun Bücher.'},
+  {de:'Wo sind die zehn Gläser?',en:'Where are the ten glasses?',it:'zehn',bwhy:'Wo sind … is the plural of Wo ist ….'}
+ ]},
+{id:22,title:"Wie spät ist es?",goal:"Ask and tell the time on the hour. Reuses Es, ist, ein, zwei, sieben and Wo ist …?",
+ note:'<b>Es ist … Uhr</b> means “It is … o’clock”. One o’clock is <b>ein Uhr</b>, never eins Uhr. <b>Die Uhr</b> also means a clock or a watch.',
+ plurals:['uhr'],
+ items:[
+  {id:'uhr',art:'die',de:'Uhr',en:'the clock / the watch',acc:['clock','watch','the clock','the watch'],pron:'dee OOR',type:'noun',gender:'feminine',plural:'die Uhren',ex:'Das ist die Uhr.',exEn:'That is the clock.',tip:'Long u, then a very soft r. Uhr also means o’clock.'},
+  {id:'wiespaet',de:'Wie spät ist es?',en:'What time is it?',acc:['what time is it','whats the time','what is the time'],pron:'vee shpayt isst ess',type:'question phrase',ex:'Wie spät ist es?',exEn:'What time is it?',tip:'sp at the start of a word sounds like “shp”. ä is like “ay” in “day”.'},
+  {id:'esistuhr',de:'Es ist zwei Uhr',en:'It is two o’clock',acc:['it is two oclock','its two oclock','it is 2 oclock','its 2 oclock'],pron:'ess isst tsvy oor',type:'sentence',ex:'Es ist zwei Uhr.',exEn:'It is two o’clock.',tip:'Swap zwei for any number: Es ist sieben Uhr.',parts:'Es = it · ist = is · zwei = two · Uhr = o’clock'}
+ ],
+ sents:[
+  {de:'Wie spät ist es?',en:'What time is it?',it:'wiespaet',bwhy:'Wie spät is the question, then the verb ist, then es.'},
+  {de:'Es ist ein Uhr.',en:'It is one o’clock.',it:'esistuhr',bwhy:'One o’clock is ein Uhr, not eins Uhr.'},
+  {de:'Es ist sieben Uhr.',en:'It is seven o’clock.',it:'esistuhr'},
+  {de:'Das ist die Uhr.',en:'That is the clock.',it:'uhr',bl:2},
+  {de:'Wo ist die Uhr?',en:'Where is the clock?',it:'uhr',bl:2},
+  {de:'Die Uhr ist nicht groß.',en:'The clock is not big.',it:'uhr',bwhy:'nicht goes right before the adjective.'}
+ ]},
+{id:23,title:"Heute, morgen, Montag",goal:"Talk about today and tomorrow. Learn the key word-order rule: the verb stays second. Reuses Ich habe …, ist and habe.",
+ note:'Days have no article after ist: <b>Heute ist Montag.</b> If a time word starts the sentence, the verb still stays second: <b>Heute habe ich einen Apfel.</b>',
+ items:[
+  {id:'heute',de:'heute',en:'today',acc:['today'],pron:'HOY-tuh',type:'time word',ex:'Heute ist Montag.',exEn:'Today is Monday.',tip:'eu sounds like “oy”. The final e is a relaxed “uh”.'},
+  {id:'morgen',de:'morgen',en:'tomorrow',acc:['tomorrow','morning'],pron:'MOR-gen',type:'time word',ex:'Morgen ist Dienstag.',exEn:'Tomorrow is Tuesday.',tip:'Short o, soft r, hard g. Morgen also means “morning” as a noun.'},
+  {id:'montag',art:'der',de:'Montag',en:'Monday',acc:['monday','the monday'],pron:'dair MOHN-tahk',type:'noun',gender:'masculine',plural:'die Montage',ex:'Heute ist Montag.',exEn:'Today is Monday.',tip:'Long o. The final g sounds like k.'},
+  {id:'dienstag',art:'der',de:'Dienstag',en:'Tuesday',acc:['tuesday','the tuesday'],pron:'dair DEENS-tahk',type:'noun',gender:'masculine',plural:'die Dienstage',ex:'Morgen ist Dienstag.',exEn:'Tomorrow is Tuesday.',tip:'ie is a long “ee”. The final g sounds like k.'}
+ ],
+ sents:[
+  {de:'Heute ist Montag.',en:'Today is Monday.',it:'montag'},
+  {de:'Morgen ist Dienstag.',en:'Tomorrow is Tuesday.',it:'dienstag'},
+  {de:'Ist heute Montag?',en:'Is today Monday?',it:'heute',bwhy:'A yes/no question starts with the verb: Ist heute …?'},
+  {de:'Nein, heute ist Dienstag.',en:'No, today is Tuesday.',it:'dienstag'},
+  {de:'Heute habe ich einen Apfel.',en:'Today I have an apple.',it:'heute',bwhy:'Heute comes first, so the verb habe stays second and ich follows it.'},
+  {de:'Morgen habe ich ein Buch.',en:'Tomorrow I have a book.',it:'morgen',bwhy:'Morgen comes first, so the verb habe stays second.'}
+ ]},
+{id:24,title:"Boss round: Zeit und Zahlen",goal:"No new words. Combine numbers, time, days, the accusative and haben.",
+ note:'Check the verb position when a time word starts the sentence, the article for each noun, and <b>ist</b> versus <b>sind</b>.',
+ plurals:['uhr','tisch','buch'],
+ items:[],
+ sents:[
+  {de:'Heute habe ich neun Bücher.',en:'Today I have nine books.',it:'neun',bwhy:'Heute comes first, so the verb habe stays second. Plural objects do not change.'},
+  {de:'Es ist zehn Uhr, und ich möchte einen Kaffee.',en:'It is ten o’clock, and I would like a coffee.',it:'zehn',bwhy:'Two full sentences joined by und. Each keeps its verb second.'},
+  {de:'Morgen ist Dienstag.',en:'Tomorrow is Tuesday.',it:'morgen'},
+  {de:'Hast du die Uhr?',en:'Do you have the clock?',it:'uhr',bl:2,ch:['der','den','die','das'],why:'Uhr is feminine, so die stays <b>die</b>.'},
+  {de:'Heute möchte ich den Tee, bitte.',en:'Today I would like the tea, please.',it:'tee',bwhy:'Heute comes first, so möchte stays second. Tee is masculine, so den.'},
+  {de:'Wo ist der Tisch?',en:'Where is the table?',it:'tisch',bl:2,ch:['der','den','die','das'],why:'Tisch is masculine. It is the subject here, so der stays <b>der</b>.'},
+  {de:'Wie spät ist es heute?',en:'What time is it today?',it:'wiespaet',bwhy:'Wie spät ist es, then the time word heute at the end.'}
+ ]},
+{id:25,title:"Sie: the polite form",goal:"Speak politely to strangers and in formal settings. Reuses Guten Tag, Frau, du bist and Ich heiße.",
+ note:'<b>Sie</b> (capital S, always) is the formal “you”, used with strangers and in business. It takes <b>sind</b>, the same form as “they are”. With friends and family use <b>du</b>. <b>Herr</b> is Mr, <b>Frau</b> is Ms or Mrs.',
+ items:[
+  {id:'herr',art:'der',de:'Herr',en:'Mr / the gentleman',acc:['mr','mister','gentleman','the gentleman','the mr'],pron:'dair HAIR',type:'noun',gender:'masculine',plural:'die Herren',ex:'Guten Tag, Herr Müller.',exEn:'Good day, Mr Müller.',tip:'The h is a light breath, and the er is a short e plus a very soft r.'},
+  {id:'wieheissensie',de:'Wie heißen Sie?',en:'What is your name? (polite)',acc:['what is your name','whats your name','what are you called'],pron:'vee HY-sen zee',type:'question phrase',ex:'Wie heißen Sie?',exEn:'What is your name?',tip:'Sie sounds like “zee”. ß is a sharp s. Use this form with strangers.'},
+  {id:'siesind',de:'Sie sind …',en:'You are … (polite)',acc:['you are','you are polite','youre'],pron:'zee zint',type:'sentence pattern',ex:'Sie sind der Vater.',exEn:'You are the father.',tip:'Both s sounds are voiced like z. The d in sind sounds like t.',parts:'Sie = you (polite) · sind = are · der Vater = the father'}
+ ],
+ sents:[
+  {de:'Guten Tag, Herr Müller.',en:'Good day, Mr Müller.',it:'herr'},
+  {de:'Wie heißen Sie?',en:'What is your name?',it:'wieheissensie',bwhy:'Wie heißen is the question, then Sie.'},
+  {de:'Sind Sie die Mutter?',en:'Are you the mother?',it:'siesind',bl:2,why:'Mutter is feminine (die Mutter), so the article is <b>die</b>.'},
+  {de:'Sie sind der Vater.',en:'You are the father.',it:'siesind',bl:2,why:'Vater is masculine (der Vater). After sind it is the subject form, so <b>der</b>.'},
+  {de:'Ich heiße Anna Müller.',en:'My name is Anna Müller.',it:'heisse'}
+ ]}
+);
+LESSONS.push(...(()=>{
+const s=(de,en,it,o={})=>({de,en,it,...o});
+const v=(id,de,en,acc,pron,type,ex,exEn,tip,parts)=>({id,de,en,acc,pron,type,ex,exEn,tip,parts});
+const nn=(id,art,de,en,pron,gender,plural,ex,exEn,tip)=>({id,art,de,en:'the '+en,acc:[en,'the '+en],pron,type:'noun',gender,plural,ex,exEn,tip});
+const L=(id,title,goal,note,items,sents,plurals)=>({id,title,goal,note,items,sents,plurals});
+const D=['der','den','die','das'],E=['ein','eine','einen'],M=['der','dem','den','die'];
+return [
+L(26,'Regular verbs: trinken, lernen, wohnen','Use verbs with ich, du and er/sie. Reuses den, einen, die and Wo …?','Regular verbs: drop <b>-en</b> and add <b>-e</b> (ich), <b>-st</b> (du), <b>-t</b> (er / sie): ich trinke, du trinkst, er trinkt. The verb stays second. Languages need no article: <b>Ich lerne Deutsch.</b>',[
+ v('trinken','trinken','to drink',['to drink','drink'],'TRING-ken','verb','Ich trinke den Kaffee.','I drink the coffee.','Short i, and nk sounds like “ng-k”.'),
+ v('lernen','lernen','to learn',['to learn','learn','to study'],'LAIR-nen','verb','Ich lerne Deutsch.','I am learning German.','Long e, like “air”.'),
+ v('wohnen','wohnen','to live (reside)',['to live','live','to reside','to live reside'],'VOH-nen','verb','Sie wohnt hier.','She lives here.','w is “v”. The h is silent and makes the o long.')],[
+ s('Ich trinke den Kaffee.','I drink the coffee.','trinken',{bl:2,ch:D,why:'Kaffee is masculine and is the object, so der becomes <b>den</b>.'}),
+ s('Du trinkst einen Tee.','You drink a tea.','trinken',{bl:2,ch:E,why:'Tee is masculine and is the object, so it is <b>einen</b>.'}),
+ s('Er trinkt die Milch.','He drinks the milk.','trinken',{bl:2,ch:D,why:'Milch is feminine, so die stays <b>die</b>.'}),
+ s('Ich lerne Deutsch.','I am learning German.','lernen',{bwhy:'Languages take no article: Deutsch.'}),
+ s('Sie wohnt hier.','She lives here.','wohnen',{bwhy:'With sie (she) the verb ends in -t: wohnt.'}),
+ s('Wo wohnst du?','Where do you live?','wohnen',{bwhy:'Wo first, then wohnst (du form, -st), then du.'})]),
+L(27,'Kaufen, brauchen, suchen','Say what you buy, need and look for. Reuses the accusative and everyday nouns.','Same regular endings: <b>ich kaufe</b>, <b>du kaufst</b>, <b>sie braucht</b>. The thing you buy, need or search for is the object: der becomes den, ein becomes einen.',[
+ v('kaufen','kaufen','to buy',['to buy','buy'],'KOW-fen','verb','Ich kaufe das Brot.','I buy the bread.','au sounds like “ow” in “cow”.'),
+ v('brauchen','brauchen','to need',['to need','need'],'BROW-khen','verb','Sie braucht eine Tasche.','She needs a bag.','au is “ow”. ch after au is the harsh throat sound.'),
+ v('suchen','suchen','to look for',['to look for','to search','to search for','look for'],'ZOO-khen','verb','Ich suche die Uhr.','I am looking for the clock.','Long u. ch after u is the harsh throat sound.')],[
+ s('Ich kaufe das Brot.','I buy the bread.','kaufen',{bl:2,ch:D,why:'Brot is neuter, so das stays <b>das</b>.'}),
+ s('Du kaufst den Apfel.','You buy the apple.','kaufen',{bl:2,ch:D,why:'Apfel is masculine and is the object, so der becomes <b>den</b>.'}),
+ s('Sie braucht eine Tasche.','She needs a bag.','brauchen',{bl:2,ch:E,why:'Tasche is feminine, so it is <b>eine</b>.'}),
+ s('Ich suche die Uhr.','I am looking for the clock.','suchen',{bl:2,ch:D,why:'Uhr is feminine, so die stays <b>die</b>.'}),
+ s('Brauchst du einen Tisch?','Do you need a table?','brauchen',{bl:2,ch:E,why:'Tisch is masculine and is the object, so it is <b>einen</b>.'})]),
+L(28,'Was kostet das? Money','Ask a price and answer in euros. Reuses numbers, Brot, Kaffee, Apfel and haben.','<b>Kosten</b> (to cost) works like a regular verb: <b>Das Brot kostet zwei Euro.</b> After a number, <b>Euro</b> stays Euro.',[
+ v('waskostet','Was kostet …?','How much is …? (What does … cost?)',['how much is','what does cost','what does it cost','how much does cost'],'vahs KOS-tet','question phrase','Was kostet das Brot?','How much is the bread?','Was is “vahs”. Short o in kostet.'),
+ nn('euro','der','Euro','euro','dair OY-roh','masculine','die Euro','Das Brot kostet zwei Euro.','The bread costs two euros.','eu sounds like “oy”. The plural is also Euro.'),
+ nn('geld','das','Geld','money','dahs GELT','neuter','','Ich habe das Geld.','I have the money.','The final d sounds like t. Geld has no common plural.')],[
+ s('Was kostet das Brot?','How much is the bread?','waskostet',{bl:2,ch:D,why:'Brot is neuter, so das stays <b>das</b>.'}),
+ s('Das Brot kostet zwei Euro.','The bread costs two euros.','euro',{bwhy:'Kostet is second. After a number, Euro does not change.'}),
+ s('Der Kaffee kostet drei Euro.','The coffee costs three euros.','euro',{bwhy:'Kostet is second. After a number, Euro does not change.'}),
+ s('Ich habe das Geld.','I have the money.','geld',{bl:2,ch:D,why:'Geld is neuter, so das stays <b>das</b>.'}),
+ s('Was kostet der Tee?','How much is the tea?','waskostet',{bl:2,ch:D,why:'Tee is masculine. Here it is the subject of kostet, so der stays <b>der</b>.'})]),
+L(29,'Boss round: Einkaufen','No new words. Combine verbs, objects, prices and numbers.','Check each ending (-e, -st, -t), the verb in second position, and der → den for masculine objects.',[],[
+ s('Ich kaufe den Kaffee und das Brot.','I buy the coffee and the bread.','kaufen',{bwhy:'Kaffee is masculine, so den. Brot is neuter, so das stays das.'}),
+ s('Was kostet der Apfel?','How much is the apple?','apfel',{bl:2,ch:D,why:'Apfel is masculine. Here it is the subject, so der stays <b>der</b>.'}),
+ s('Du brauchst das Geld.','You need the money.','brauchen',{bl:2,ch:D,why:'Geld is neuter, so das stays <b>das</b>.'}),
+ s('Ich suche einen Tisch.','I am looking for a table.','suchen',{bl:2,ch:E,why:'Tisch is masculine and is the object, so it is <b>einen</b>.'}),
+ s('Heute kaufe ich die Milch.','Today I buy the milk.','kaufen',{bwhy:'Heute comes first, so kaufe stays second.'}),
+ s('Sie trinkt den Tee.','She drinks the tea.','trinken',{bl:2,ch:D,why:'Tee is masculine and is the object, so der becomes <b>den</b>.'}),
+ s('Der Apfel kostet nicht zehn Euro.','The apple does not cost ten euros.','euro',{bwhy:'Nicht goes before the price.'})],['buch','tasche']),
+L(30,'In der Küche: the dative','Say where someone or something is. Reuses Frau, Vater, Brot, Tasche and ist.','To say <b>where</b> something is after <b>in</b>, German uses the <b>dative</b>. For feminine nouns, <b>die → der</b>: die Küche → <b>in der Küche</b>. Same shape as der, different job.',[
+ v('in','in','in',['in'],'in','preposition','Die Frau ist in der Küche.','The woman is in the kitchen.','Short i, like English “in”.'),
+ nn('kueche','die','Küche','kitchen','dee KUE-khuh','feminine','die Küchen','Die Mutter ist in der Küche.','The mother is in the kitchen.','ü: round the lips and say “ee”. ch is the soft hiss from ich.'),
+ nn('wohnung','die','Wohnung','apartment',' dee VOH-noong','feminine','die Wohnungen','Ich wohne in der Wohnung.','I live in the apartment.','Long o. The ending -ung sounds like “oong”.')],[
+ s('Die Frau ist in der Küche.','The woman is in the kitchen.','kueche',{bl:4,ch:M,why:'Küche is feminine. After in (where?), die becomes <b>der</b>.'}),
+ s('Der Vater ist in der Wohnung.','The father is in the apartment.','wohnung',{bl:4,ch:M,why:'Wohnung is feminine. After in (where?), die becomes <b>der</b>.'}),
+ s('Das Brot ist in der Tasche.','The bread is in the bag.','in',{bl:4,ch:M,why:'Tasche is feminine. After in (where?), die becomes <b>der</b>.'}),
+ s('Ich wohne in der Wohnung.','I live in the apartment.','wohnen',{bl:3,ch:M,why:'Wohnung is feminine. After in (where?), die becomes <b>der</b>.'}),
+ s('Die Milch ist in der Küche.','The milk is in the kitchen.','kueche',{bl:4,ch:M,why:'Küche is feminine. After in (where?), die becomes <b>der</b>.'})],['kueche','wohnung']),
+L(31,'Im Zimmer: masculine and neuter','Place things in rooms. Reuses in, der Tisch, das Buch and Haus.','For masculine and neuter nouns after <b>in</b> (where?), the article is <b>dem</b>, and <b>in dem</b> shortens to <b>im</b>: das Zimmer → <b>im Zimmer</b>. Feminine stays <b>in der</b>.',[
+ nn('zimmer','das','Zimmer','room','dahs TSIM-mer','neuter','die Zimmer','Das Zimmer ist groß.','The room is big.','z is “ts”. The final -er is a relaxed “uh”.'),
+ nn('bad','das','Bad','bathroom',' dahs BAHT','neuter','die Bäder','Das Bad ist klein.','The bathroom is small.','Long a. The final d sounds like t.'),
+ v('im','im','in the (masculine / neuter)',['in the'],'im','preposition','Der Vater ist im Haus.','The father is in the house.','Short i. Im is a short form of in dem.')],[
+ s('Der Vater ist im Haus.','The father is in the house.','im',{bl:3,ch:['im','in der','in die','in den'],why:'Haus is neuter. After in (where?), in dem becomes <b>im</b>.'}),
+ s('Die Mutter ist im Zimmer.','The mother is in the room.','zimmer',{bl:3,ch:['im','in der','in die','in den'],why:'Zimmer is neuter, so in dem becomes <b>im</b>.'}),
+ s('Das Buch ist im Bad.','The book is in the bathroom.','bad',{bl:3,ch:['im','in der','in die','in den'],why:'Bad is neuter, so in dem becomes <b>im</b>.'}),
+ s('Der Tisch ist im Zimmer.','The table is in the room.','zimmer',{bl:3,ch:['im','in der','in die','in den'],why:'Zimmer is neuter, so in dem becomes <b>im</b>.'}),
+ s('Die Tasche ist in der Küche.','The bag is in the kitchen.','kueche',{bl:4,ch:M,why:'Küche is feminine, so it stays <b>in der</b>.'})],['zimmer','bad']),
+L(32,'Boss round: Im Haus','No new words. Combine in, im, in der, verbs and objects.','Where? Feminine <b>in der</b>, masculine and neuter <b>im</b>. What? Masculine objects take <b>den</b> or <b>einen</b>.',[],[
+ s('Die Familie ist im Haus.','The family is in the house.','familie',{bl:3,ch:['im','in der','in die','in den'],why:'Haus is neuter, so in dem becomes <b>im</b>.'}),
+ s('Der Vater trinkt den Kaffee in der Küche.','The father drinks the coffee in the kitchen.','trinken',{bwhy:'Kaffee is the object (den). Küche after in (where?) is in der.'}),
+ s('Die Mutter ist im Bad.','The mother is in the bathroom.','bad',{bl:3,ch:['im','in der','in die','in den'],why:'Bad is neuter, so in dem becomes <b>im</b>.'}),
+ s('Das Brot ist in der Tasche.','The bread is in the bag.','tasche',{bl:4,ch:M,why:'Tasche is feminine, so it is <b>in der</b>.'}),
+ s('Der Tisch ist groß, und das Zimmer ist klein.','The table is big, and the room is small.','zimmer',{bwhy:'Two full sentences joined by und, each with ist second.'}),
+ s('Ich wohne in der Wohnung.','I live in the apartment.','wohnung',{bl:3,ch:M,why:'Wohnung is feminine, so it is <b>in der</b>.'}),
+ s('Heute kaufe ich ein Buch.','Today I buy a book.','kaufen',{bwhy:'Heute first, so kaufe stays second. Buch is neuter, so ein stays ein.'})],['zimmer','kueche','wohnung']),
+L(33,'Auf dem Tisch, neben der Tür','Say where things are in relation to other things. Reuses the dative from Lessons 30 and 31.','<b>Auf</b> (on) and <b>neben</b> (next to) also take the dative for location: <b>auf dem Tisch</b>, <b>neben dem Stuhl</b>, <b>neben der Tür</b>. Same pattern: masculine and neuter dem, feminine der.',[
+ v('auf','auf','on / on top of',['on','on top of','on top'],'owf','preposition','Das Buch ist auf dem Tisch.','The book is on the table.','au sounds like “ow”.'),
+ v('neben','neben','next to',['next to','beside'],'NAY-ben','preposition','Der Stuhl ist neben dem Tisch.','The chair is next to the table.','Long e, like “ay”.'),
+ nn('stuhl','der','Stuhl','chair','dair SHTOOL','masculine','die Stühle','Der Stuhl ist klein.','The chair is small.','st at the start of a word sounds like “sht”.')],[
+ s('Das Buch ist auf dem Tisch.','The book is on the table.','auf',{bl:4,ch:M,why:'Tisch is masculine. After auf (where?), der becomes <b>dem</b>.'}),
+ s('Die Tasche ist auf dem Stuhl.','The bag is on the chair.','stuhl',{bl:4,ch:M,why:'Stuhl is masculine, so after auf (where?) it is <b>dem</b>.'}),
+ s('Der Stuhl ist neben dem Tisch.','The chair is next to the table.','neben',{bl:4,ch:M,why:'Tisch is masculine, so after neben (where?) it is <b>dem</b>.'}),
+ s('Die Tasche ist neben der Tür.','The bag is next to the door.','neben',{bl:4,ch:M,why:'Tür is feminine, so after neben (where?) it is <b>der</b>.'}),
+ s('Der Apfel ist auf dem Tisch.','The apple is on the table.','auf',{bl:4,ch:M,why:'Tisch is masculine, so after auf (where?) it is <b>dem</b>.'})],['stuhl'])
+];})());
+LESSONS.push(...(()=>{
+const s=(de,en,it,o={})=>({de,en,it,...o});
+const v=(id,de,en,acc,pron,type,ex,exEn,tip,parts)=>({id,de,en,acc,pron,type,ex,exEn,tip,parts});
+const nn=(id,art,de,en,pron,gender,plural,ex,exEn,tip)=>({id,art,de,en:'the '+en,acc:[en,'the '+en],pron,type:'noun',gender,plural,ex,exEn,tip});
+const L=(id,title,goal,note,items,sents,plurals)=>({id,title,goal,note,items,sents,plurals});
+const D=['der','den','die','das'],E=['ein','eine','einen'],M=['der','dem','den','die'],I=['im','in der','in die','in den'];
+const V='The participle goes to the very end of the sentence.';
+return [
+L(34,'Mittwoch, Donnerstag, Freitag','Name more weekdays and say what you do on a day. Reuses heute, morgen, Montag, Dienstag and the verb-second rule.','<b>Am</b> means “on” with a day: <b>am Montag</b>, <b>am Freitag</b>. Learn it as a block for now. If it starts the sentence, the verb stays second: <b>Am Freitag trinke ich den Tee.</b>',[
+ nn('mittwoch','der','Mittwoch','Wednesday','dair MIT-vokh','masculine','die Mittwoche','Heute ist Mittwoch.','Today is Wednesday.','w is “v”. ch at the end is the harsh throat sound.'),
+ nn('donnerstag','der','Donnerstag','Thursday','dair DON-ners-tahk','masculine','die Donnerstage','Morgen ist Donnerstag.','Tomorrow is Thursday.','Stress the first syllable. The final g sounds like k.'),
+ nn('freitag','der','Freitag','Friday','dair FRY-tahk','masculine','die Freitage','Am Freitag trinke ich den Tee.','On Friday I drink the tea.','ei sounds like “eye”. The final g sounds like k.'),
+ v('am','am','on (with a day)',['on','on with a day'],'ahm','preposition','Am Montag habe ich ein Buch.','On Monday I have a book.','Short a. Am is a short form of an dem.')],[
+ s('Heute ist Mittwoch.','Today is Wednesday.','mittwoch'),
+ s('Morgen ist Donnerstag.','Tomorrow is Thursday.','donnerstag'),
+ s('Ist heute Freitag?','Is today Friday?','freitag',{bwhy:'A yes/no question starts with the verb.'}),
+ s('Am Freitag trinke ich den Tee.','On Friday I drink the tea.','am',{bwhy:'Am Freitag comes first, so trinke stays second.'}),
+ s('Am Montag habe ich ein Buch.','On Monday I have a book.','am',{bwhy:'Am Montag comes first, so habe stays second.'}),
+ s('Nein, heute ist nicht Mittwoch.','No, today is not Wednesday.','mittwoch',{bwhy:'Nicht comes before the day.'})]),
+L(35,'Samstag, Sonntag, die Woche','Finish the week. Reuses am, im, ist and Familie.','You now know the whole week: Montag, Dienstag, Mittwoch, Donnerstag, Freitag, Samstag, Sonntag. All the days are masculine: <b>der</b> Montag.',[
+ nn('samstag','der','Samstag','Saturday','dair ZAHMS-tahk','masculine','die Samstage','Heute ist Samstag.','Today is Saturday.','s is voiced like z. The final g sounds like k.'),
+ nn('sonntag','der','Sonntag','Sunday','dair ZON-tahk','masculine','die Sonntage','Am Sonntag ist die Mutter im Haus.','On Sunday the mother is in the house.','Short o. The final g sounds like k.'),
+ nn('woche','die','Woche','week','dee VO-khuh','feminine','die Wochen','Die Woche ist gut.','The week is good.','w is “v”. ch after o is the harsh throat sound.')],[
+ s('Heute ist Samstag.','Today is Saturday.','samstag'),
+ s('Am Sonntag ist die Mutter im Haus.','On Sunday the mother is in the house.','sonntag',{bl:5,ch:I,why:'Haus is neuter, so in dem becomes <b>im</b>.'}),
+ s('Die Woche ist gut.','The week is good.','woche',{bwhy:'After ist, the adjective does not change.'}),
+ s('Am Samstag kaufe ich das Brot.','On Saturday I buy the bread.','samstag',{bwhy:'Am Samstag comes first, so kaufe stays second.'}),
+ s('Ist morgen Sonntag?','Is tomorrow Sunday?','sonntag',{bwhy:'A yes/no question starts with the verb.'})],['woche']),
+L(36,'The Perfekt: getrunken, gekauft','Talk about the past. Reuses trinken, kaufen, lernen and the accusative.','The <b>Perfekt</b> is <b>haben</b> plus a <b>participle</b>. The participle goes to the very end: <b>Ich habe den Kaffee getrunken.</b> Regular verbs: <b>ge- + stem + -t</b> (gekauft, gelernt). Trinken is irregular: <b>getrunken</b>.',[
+ v('getrunken','getrunken','drunk (participle of trinken)',['drunk','drank','have drunk','drunk participle'],'geh-TROONG-ken','participle','Ich habe den Kaffee getrunken.','I drank the coffee.','The first syllable ge- is a short, weak “guh”. Stress the second.'),
+ v('gekauft','gekauft','bought (participle of kaufen)',['bought','have bought','bought participle'],'geh-KOWFT','participle','Sie hat das Brot gekauft.','She bought the bread.','au sounds like “ow”. The ending is ft.'),
+ v('gelernt','gelernt','learned (participle of lernen)',['learned','learnt','have learned','studied'],'geh-LAIRNT','participle','Ich habe Deutsch gelernt.','I learned German.','Long e, like “air”.')],[
+ s('Ich habe den Kaffee getrunken.','I drank the coffee.','getrunken',{bl:2,ch:D,why:'Kaffee is masculine and is the object, so der becomes <b>den</b>.'}),
+ s('Du hast einen Apfel gekauft.','You bought an apple.','gekauft',{bl:2,ch:E,why:'Apfel is masculine and is the object, so it is <b>einen</b>.'}),
+ s('Sie hat das Brot gekauft.','She bought the bread.','gekauft',{bl:2,ch:D,why:'Brot is neuter, so das stays <b>das</b>.'}),
+ s('Ich habe Deutsch gelernt.','I learned German.','gelernt',{bwhy:V}),
+ s('Hast du den Tee getrunken?','Did you drink the tea?','getrunken',{bl:2,ch:D,why:'Tee is masculine and is the object, so der becomes <b>den</b>.'}),
+ s('Heute habe ich Deutsch gelernt.','Today I learned German.','gelernt',{bwhy:'Heute first, so habe stays second. '+V})]),
+L(37,'Im Restaurant','Ask for the bill and pay. Reuses möchte, bitte, die Milch and Wo ist …?','At a restaurant: <b>Ich möchte zahlen</b> (I would like to pay) and <b>Die Rechnung, bitte</b> (the bill, please). The verb <b>zahlen</b> is regular: ich zahle, du zahlst.',[
+ nn('restaurant','das','Restaurant','restaurant','dahs res-toh-RONG','neuter','die Restaurants','Wo ist das Restaurant?','Where is the restaurant?','From French: stress the last syllable, with a nasal ong.'),
+ nn('rechnung','die','Rechnung','bill',' dee REKH-noong','feminine','die Rechnungen','Die Rechnung, bitte.','The bill, please.','ch after e is the soft hiss from ich. The ending is “oong”.'),
+ v('zahlen','zahlen','to pay',['to pay','pay'],'TSAH-len','verb','Ich möchte zahlen.','I would like to pay.','z is “ts”. The a is long.')],[
+ s('Wo ist das Restaurant?','Where is the restaurant?','restaurant',{bl:2,ch:D,why:'Restaurant is neuter, so das stays <b>das</b>.'}),
+ s('Die Rechnung, bitte.','The bill, please.','rechnung'),
+ s('Ich möchte zahlen.','I would like to pay.','zahlen',{bwhy:'Möchte is second, and the infinitive zahlen goes to the end.'}),
+ s('Ich habe die Rechnung.','I have the bill.','rechnung',{bl:2,ch:D,why:'Rechnung is feminine, so die stays <b>die</b>.'}),
+ s('Ich möchte die Rechnung, bitte.','I would like the bill, please.','rechnung',{bl:2,ch:D,why:'Rechnung is feminine, so die stays <b>die</b>.'})],['rechnung']),
+L(38,'Boss round: Gestern im Restaurant','No new words. Combine the Perfekt, weekdays, ordering and objects.','Check: verb second, participle at the end, <b>den / einen</b> for masculine objects. <b>Gezahlt</b> is the participle of zahlen (ge- + stem + -t).',[],[
+ s('Am Freitag habe ich den Tee getrunken.','On Friday I drank the tea.','getrunken',{bwhy:'Am Freitag first, so habe stays second. '+V}),
+ s('Ich habe die Rechnung.','I have the bill.','rechnung',{bl:2,ch:D,why:'Rechnung is feminine, so die stays <b>die</b>.'}),
+ s('Sie hat die Rechnung gezahlt.','She paid the bill.','zahlen',{bwhy:V+' Gezahlt = ge- + zahl + -t.'}),
+ s('Du hast Deutsch gelernt.','You learned German.','gelernt',{bwhy:V}),
+ s('Hast du den Kaffee gekauft?','Did you buy the coffee?','gekauft',{bl:2,ch:D,why:'Kaffee is masculine and is the object, so der becomes <b>den</b>.'}),
+ s('Wo ist das Restaurant?','Where is the restaurant?','restaurant',{bl:2,ch:D,why:'Restaurant is neuter, so das stays <b>das</b>.'}),
+ s('Ich möchte einen Tee, bitte.','I would like a tea, please.','moechte',{bl:2,ch:E,why:'Tee is masculine and is the object, so it is <b>einen</b>.'})],['rechnung','woche']),
+L(39,'Beim Arzt: der Arzt','Talk about a doctor and a few body parts. Reuses brauchen, suchen, im and auf dem.','<b>Der Arzt</b> is a male doctor, and a female doctor is <b>die Ärztin</b>. The doctor as an object: <b>Ich brauche einen Arzt.</b>',[
+ nn('arzt','der','Arzt','doctor','dair AHRTST','masculine','die Ärzte','Ich brauche einen Arzt.','I need a doctor.','The ending -zt sounds like “tst”. Short a, soft r.'),
+ nn('kopf','der','Kopf','head','dair KOPF','masculine','die Köpfe','Der Kopf ist groß.','The head is big.','Short o, and a clear pf at the end.'),
+ nn('hand','die','Hand','hand','dee HAHNT','feminine','die Hände','Die Hand ist klein.','The hand is small.','The final d sounds like t.')],[
+ s('Ich brauche einen Arzt.','I need a doctor.','arzt',{bl:2,ch:E,why:'Arzt is masculine and is the object, so it is <b>einen</b>.'}),
+ s('Wo ist der Arzt?','Where is the doctor?','arzt',{bl:2,ch:D,why:'Arzt is masculine. It is the subject here, so der stays <b>der</b>.'}),
+ s('Ich suche den Arzt.','I am looking for the doctor.','arzt',{bl:2,ch:D,why:'Arzt is masculine and is the object, so der becomes <b>den</b>.'}),
+ s('Die Hand ist auf dem Tisch.','The hand is on the table.','hand',{bl:4,ch:M,why:'Tisch is masculine. After auf (where?), der becomes <b>dem</b>.'}),
+ s('Der Arzt ist im Haus.','The doctor is in the house.','arzt',{bl:3,ch:I,why:'Haus is neuter, so in dem becomes <b>im</b>.'})],['arzt','kopf','hand']),
+L(40,'Rot, blau, grün','Describe colours. Reuses ist, nicht, groß, klein and the nouns you know.','After <b>ist</b>, the colour does not change: <b>Das Haus ist rot.</b> Do not add endings yet.',[
+ v('rot','rot','red',['red'],'roht','adjective','Das Haus ist rot.','The house is red.','Long o. The r is soft.'),
+ v('blau','blau','blue',['blue'],'blow','adjective','Die Tasche ist blau.','The bag is blue.','au sounds like “ow”, so blau rhymes with “wow”.'),
+ v('gruen','grün','green',['green'],'gruun','adjective','Der Apfel ist grün.','The apple is green.','ü: round the lips and say “ee”.')],[
+ s('Das Haus ist rot.','The house is red.','rot'),
+ s('Die Tasche ist blau.','The bag is blue.','blau'),
+ s('Der Apfel ist grün.','The apple is green.','gruen'),
+ s('Ist die Tasche blau?','Is the bag blue?','blau',{bl:1,ch:D,why:'Tasche is feminine, so the article is <b>die</b>.'}),
+ s('Der Apfel ist nicht rot.','The apple is not red.','rot',{bwhy:'Nicht comes right before the adjective.'})]),
+L(41,'Das Wetter','Talk about the weather. Reuses heute, morgen, nicht and gut.','<b>Es</b> is used for the weather: <b>Es regnet</b> (It is raining), <b>Es ist kalt</b> (It is cold). If heute starts the sentence, ist stays second: <b>Heute ist es kalt.</b>',[
+ nn('wetter','das','Wetter','weather','dahs VET-ter','neuter','','Das Wetter ist gut.','The weather is good.','w is “v”. Short e, and the final -er is a relaxed “uh”.'),
+ v('kalt','kalt','cold',['cold'],'kahlt','adjective','Heute ist es kalt.','Today it is cold.','Short a, and a clear lt at the end.'),
+ v('regnet','Es regnet','It is raining',['it is raining','it rains','its raining'],'ess RAYG-net','verb phrase','Es regnet heute.','It is raining today.','Long e, like “ay”. Hard g.')],[
+ s('Das Wetter ist gut.','The weather is good.','wetter'),
+ s('Wie ist das Wetter?','How is the weather?','wetter',{bl:2,ch:D,why:'Wetter is neuter, so das stays <b>das</b>.'}),
+ s('Heute ist es kalt.','Today it is cold.','kalt',{bwhy:'Heute first, so ist stays second and es follows.'}),
+ s('Morgen ist es nicht kalt.','Tomorrow it is not cold.','kalt',{bwhy:'Morgen first, so ist stays second. Nicht goes before kalt.'}),
+ s('Es regnet heute.','It is raining today.','regnet')])
+];})());
+LESSONS.push(...(()=>{
+const s=(de,en,it,o={})=>({de,en,it,...o});
+const v=(id,de,en,acc,pron,type,ex,exEn,tip,parts)=>({id,de,en,acc,pron,type,ex,exEn,tip,parts});
+const nn=(id,art,de,en,pron,gender,plural,ex,exEn,tip)=>({id,art,de,en:'the '+en,acc:[en,'the '+en],pron,type:'noun',gender,plural,ex,exEn,tip});
+const L=(id,title,goal,note,items,sents,plurals)=>({id,title,goal,note,items,sents,plurals});
+const D=['der','den','die','das'],E=['ein','eine','einen'],M=['der','dem','den','die'],I=['im','in der','in die','in den'];
+return [
+L(42,'Bus, Zug, Bahnhof','Name the main ways to travel. Reuses Wo ist …?, suchen, brauchen and neben dem.','All three are masculine: <b>der</b> Bus, <b>der</b> Zug, <b>der</b> Bahnhof. As objects they change: <b>Ich suche den Bahnhof.</b> After neben (where?): <b>neben dem Bahnhof</b>.',[
+ nn('bus','der','Bus','bus','dair BOOSS','masculine','die Busse','Der Bus ist hier.','The bus is here.','Long u, and a sharp s at the end.'),
+ nn('zug','der','Zug','train','dair TSOOK','masculine','die Züge','Der Zug ist groß.','The train is big.','z is “ts”. The final g sounds like k.'),
+ nn('bahnhof','der','Bahnhof','train station','dair BAHN-hohf','masculine','die Bahnhöfe','Wo ist der Bahnhof?','Where is the station?','Long a, and a light h before the long o.')],[
+ s('Wo ist der Bahnhof?','Where is the station?','bahnhof',{bl:2,ch:D,why:'Bahnhof is masculine. It is the subject here, so der stays <b>der</b>.'}),
+ s('Ich suche den Bahnhof.','I am looking for the station.','bahnhof',{bl:2,ch:D,why:'Bahnhof is masculine and is the object, so der becomes <b>den</b>.'}),
+ s('Der Bus ist neben dem Bahnhof.','The bus is next to the station.','bus',{bl:4,ch:M,why:'Bahnhof is masculine. After neben (where?), der becomes <b>dem</b>.'}),
+ s('Der Zug ist hier.','The train is here.','zug'),
+ s('Ich brauche den Bus.','I need the bus.','bus',{bl:2,ch:D,why:'Bus is masculine and is the object, so der becomes <b>den</b>.'})],['bahnhof']),
+L(43,'Links, rechts, geradeaus','Give and follow simple directions. Reuses Wo ist …?, ist, nicht and the places you know.','Directions come after <b>ist</b> and do not change: <b>Der Bahnhof ist links.</b> Ask with <b>Wo ist …?</b>',[
+ v('links','links','left / on the left',['left','on the left','to the left'],'links','direction','Der Bahnhof ist links.','The station is on the left.','Short i. Say the final s clearly.'),
+ v('rechts','rechts','right / on the right',['right','on the right','to the right'],'rekhts','direction','Die Tür ist rechts.','The door is on the right.','ch after e is the soft hiss from ich.'),
+ v('geradeaus','geradeaus','straight ahead',['straight ahead','straight on','straight'],'geh-RAH-deh-ows','direction','Das Restaurant ist geradeaus.','The restaurant is straight ahead.','au sounds like “ow”. Stress the second syllable.')],[
+ s('Der Bahnhof ist links.','The station is on the left.','links'),
+ s('Die Tür ist rechts.','The door is on the right.','rechts'),
+ s('Das Restaurant ist geradeaus.','The restaurant is straight ahead.','geradeaus'),
+ s('Ist der Bus links?','Is the bus on the left?','links',{bl:1,ch:D,why:'Bus is masculine. It is the subject, so der stays <b>der</b>.'}),
+ s('Der Zug ist nicht rechts.','The train is not on the right.','rechts',{bwhy:'Nicht comes right before the direction.'})]),
+L(44,'Die Fahrkarte','Buy a ticket to a city. Reuses möchte, brauchen, eine and in der.','<b>Nach</b> + a city means “to”: <b>nach Berlin</b>. City names take no article. Feminine nouns: <b>eine Fahrkarte</b>, <b>in der Stadt</b>.',[
+ nn('fahrkarte','die','Fahrkarte','ticket','dee FAHR-kar-tuh','feminine','die Fahrkarten','Ich habe die Fahrkarte.','I have the ticket.','Long a, soft r. The final e is a relaxed “uh”.'),
+ v('nach','nach','to (a city) / after',['to','to a city','after','towards'],'nahkh','preposition','Ich möchte eine Fahrkarte nach Berlin.','I would like a ticket to Berlin.','ch after a is the harsh throat sound.'),
+ nn('stadt','die','Stadt','city','dee SHTAHT','feminine','die Städte','Der Zug ist in der Stadt.','The train is in the city.','st at the start of a word sounds like “sht”.')],[
+ s('Ich möchte eine Fahrkarte nach Berlin.','I would like a ticket to Berlin.','nach',{bl:2,ch:E,why:'Fahrkarte is feminine, so it is <b>eine</b>.'}),
+ s('Ich habe die Fahrkarte.','I have the ticket.','fahrkarte',{bl:2,ch:D,why:'Fahrkarte is feminine, so die stays <b>die</b>.'}),
+ s('Der Zug ist in der Stadt.','The train is in the city.','stadt',{bl:4,ch:M,why:'Stadt is feminine. After in (where?), die becomes <b>der</b>.'}),
+ s('Ich brauche eine Fahrkarte.','I need a ticket.','fahrkarte',{bl:2,ch:E,why:'Fahrkarte is feminine, so it is <b>eine</b>.'}),
+ s('Die Fahrkarte kostet zehn Euro.','The ticket costs ten euros.','fahrkarte',{bwhy:'Kostet is second. After a number, Euro does not change.'})],['stadt','fahrkarte']),
+L(45,'Boss round: Am Bahnhof','No new words. Combine transport, directions, tickets and objects.','Check: <b>den / eine</b> for objects, <b>dem / der</b> after location words, and the participle at the end. <b>Gesucht</b> = ge- + such + -t.',[],[
+ s('Der Bahnhof ist links, und der Bus ist rechts.','The station is on the left, and the bus is on the right.','links',{bwhy:'Two full sentences joined by und, each with ist second.'}),
+ s('Ich möchte eine Fahrkarte, bitte.','I would like a ticket, please.','fahrkarte',{bl:2,ch:E,why:'Fahrkarte is feminine, so it is <b>eine</b>.'}),
+ s('Die Fahrkarte kostet zehn Euro.','The ticket costs ten euros.','euro',{bwhy:'Kostet is second. After a number, Euro does not change.'}),
+ s('Wo ist die Stadt?','Where is the city?','stadt',{bl:2,ch:D,why:'Stadt is feminine, so die stays <b>die</b>.'}),
+ s('Der Bus ist in der Stadt.','The bus is in the city.','bus',{bl:4,ch:M,why:'Stadt is feminine. After in (where?), die becomes <b>der</b>.'}),
+ s('Ich habe den Zug gesucht.','I looked for the train.','suchen',{bwhy:'The participle goes to the end. Zug is masculine, so den.'}),
+ s('Heute habe ich die Fahrkarte gekauft.','Today I bought the ticket.','gekauft',{bwhy:'Heute first, so habe stays second. The participle goes to the end.'})],['bahnhof','stadt']),
+L(46,'Im Hotel','Ask for a room and a key. Reuses das Zimmer, möchte, ein, den and im.','At a hotel: <b>Ich möchte ein Zimmer, bitte.</b> The key as an object: <b>Ich habe den Schlüssel.</b>',[
+ nn('hotel','das','Hotel','hotel','dahs hoh-TEL','neuter','die Hotels','Das Zimmer ist im Hotel.','The room is in the hotel.','Stress the last syllable: hoh-TEL.'),
+ nn('schluessel','der','Schlüssel','key','dair SHLUE-sel','masculine','die Schlüssel','Wo ist der Schlüssel?','Where is the key?','sch is “sh”. ü: round the lips and say “ee”.'),
+ nn('nacht','die','Nacht','night','dee NAHKHT','feminine','die Nächte','Die Nacht ist kalt.','The night is cold.','ch after a is the harsh throat sound.')],[
+ s('Ich möchte ein Zimmer, bitte.','I would like a room, please.','hotel',{bl:2,ch:E,why:'Zimmer is neuter, so it stays <b>ein</b>.'}),
+ s('Wo ist der Schlüssel?','Where is the key?','schluessel',{bl:2,ch:D,why:'Schlüssel is masculine. It is the subject here, so der stays <b>der</b>.'}),
+ s('Ich habe den Schlüssel.','I have the key.','schluessel',{bl:2,ch:D,why:'Schlüssel is masculine and is the object, so der becomes <b>den</b>.'}),
+ s('Das Zimmer ist im Hotel.','The room is in the hotel.','hotel',{bl:3,ch:I,why:'Hotel is neuter, so in dem becomes <b>im</b>.'}),
+ s('Die Nacht ist kalt.','The night is cold.','nacht')],['schluessel','nacht']),
+L(47,'Elf, zwölf, zwanzig','Count past ten. Reuses numbers, Uhr, Euro and Apfel.','11 <b>elf</b>, 12 <b>zwölf</b>, 20 <b>zwanzig</b>. The rest of the teens follow a pattern (dreizehn, vierzehn), which comes later. Time: <b>Es ist elf Uhr.</b>',[
+ v('elf','elf','eleven',['eleven','11'],'elf','number','Es ist elf Uhr.','It is eleven o’clock.','Short e, and a clear lf.'),
+ v('zwoelf','zwölf','twelve',['twelve','12'],'tsvuhlf','number','Hier sind zwölf Äpfel.','Here are twelve apples.','ö: round the lips as for “oh” and say “ay”. z is “ts”.'),
+ v('zwanzig','zwanzig','twenty',['twenty','20'],'TSVAHN-tsikh','number','Ich habe zwanzig Euro.','I have twenty euros.','The ending -zig sounds like “tsikh”, with the soft ch.')],[
+ s('Es ist elf Uhr.','It is eleven o’clock.','elf'),
+ s('Es ist zwölf Uhr.','It is twelve o’clock.','zwoelf'),
+ s('Hier sind zwölf Äpfel.','Here are twelve apples.','zwoelf',{bwhy:'More than one thing: ist becomes sind, and the noun is plural.'}),
+ s('Ich habe zwanzig Euro.','I have twenty euros.','zwanzig',{bwhy:'After a number, Euro does not change.'}),
+ s('Das Brot kostet elf Euro.','The bread costs eleven euros.','elf',{bwhy:'Kostet is second. After a number, Euro does not change.'})]),
+L(48,'Bruder, Schwester, Kind','Talk about your siblings and children. Reuses Familie, Mutter, Vater, ein and einen.','Family objects: <b>Ich habe einen Bruder</b> (masculine, einen), <b>eine Schwester</b> (feminine, eine), <b>ein Kind</b> (neuter, ein).',[
+ nn('bruder','der','Bruder','brother','dair BROO-der','masculine','die Brüder','Das ist der Bruder.','That is the brother.','Long u, like “oo”, and a soft r.'),
+ nn('schwester','die','Schwester','sister','dee SHVES-ter','feminine','die Schwestern','Das ist die Schwester.','That is the sister.','schw sounds like “shv”.'),
+ nn('kind','das','Kind','child','dahs KINT','neuter','die Kinder','Das Kind ist klein.','The child is small.','The final d sounds like t.')],[
+ s('Das ist der Bruder.','That is the brother.','bruder',{bl:2,ch:D,why:'Bruder is masculine. After Das ist … it is the subject, so <b>der</b>.'}),
+ s('Das ist die Schwester.','That is the sister.','schwester',{bl:2,ch:D,why:'Schwester is feminine, so the article is <b>die</b>.'}),
+ s('Ich habe einen Bruder.','I have a brother.','bruder',{bl:2,ch:E,why:'Bruder is masculine and is the object, so it is <b>einen</b>.'}),
+ s('Ich habe eine Schwester.','I have a sister.','schwester',{bl:2,ch:E,why:'Schwester is feminine, so it is <b>eine</b>.'}),
+ s('Ich habe ein Kind.','I have a child.','kind',{bl:2,ch:E,why:'Kind is neuter, so it stays <b>ein</b>.'})],['bruder','schwester','kind']),
+L(49,'Boss round: Die Reise','No new words. Combine family, travel, hotel and the Perfekt.','Check: <b>einen / eine / ein</b> for each noun, <b>im</b> for neuter places, verb second, and the participle at the end.',[],[
+ s('Ich habe einen Bruder und eine Schwester.','I have a brother and a sister.','bruder',{bwhy:'Bruder is masculine, so einen. Schwester is feminine, so eine.'}),
+ s('Der Bruder ist im Hotel.','The brother is in the hotel.','hotel',{bl:3,ch:I,why:'Hotel is neuter, so in dem becomes <b>im</b>.'}),
+ s('Die Schwester hat eine Fahrkarte.','The sister has a ticket.','fahrkarte',{bl:3,ch:E,why:'Fahrkarte is feminine, so it is <b>eine</b>.'}),
+ s('Das Hotel ist links, und der Bahnhof ist rechts.','The hotel is on the left, and the station is on the right.','links',{bwhy:'Two full sentences joined by und, each with ist second.'}),
+ s('Der Zug kostet zwanzig Euro.','The train costs twenty euros.','zwanzig',{bwhy:'Kostet is second. After a number, Euro does not change.'}),
+ s('Hast du die Fahrkarte?','Do you have the ticket?','fahrkarte',{bl:2,ch:D,why:'Fahrkarte is feminine, so die stays <b>die</b>.'}),
+ s('Am Freitag habe ich den Schlüssel gekauft.','On Friday I bought the key.','schluessel',{bwhy:'Am Freitag first, so habe stays second. The participle goes to the end.'})],['schluessel','stadt','kind'])
+];})());
+LESSONS.push(...(()=>{
+const s=(de,en,it,o={})=>({de,en,it,...o});
+const v=(id,de,en,acc,pron,type,ex,exEn,tip,parts)=>({id,de,en,acc,pron,type,ex,exEn,tip,parts});
+const nn=(id,art,de,en,pron,gender,plural,ex,exEn,tip)=>({id,art,de,en:'the '+en,acc:[en,'the '+en],pron,type:'noun',gender,plural,ex,exEn,tip});
+const L=(id,title,goal,note,items,sents,plurals)=>({id,title,goal,note,items,sents,plurals});
+const D=['der','den','die','das'],E=['ein','eine','einen'],I=['im','in der','in die','in den'];
+const MV='The modal verb stays second, and the other verb goes to the very end.';
+return [
+L(50,'Können: Ich kann …','Say what you can do. Reuses lernen, trinken, kaufen and the accusative.','<b>Können</b> (can): <b>ich kann</b>, <b>du kannst</b>, <b>er / sie kann</b>. The modal is second and the other verb goes to the end: <b>Ich kann Deutsch sprechen.</b>',[
+ v('ichkann','Ich kann …','I can …',['i can','i am able to','i am able'],'ikh KAHN','modal pattern','Ich kann Deutsch sprechen.','I can speak German.','Short a. Do not add a vowel at the end.','Ich = I · kann = can · Deutsch sprechen = speak German'),
+ v('kannstdu','Kannst du …?','Can you …?',['can you','are you able to'],'kahnst DOO','modal question','Kannst du Deutsch sprechen?','Can you speak German?','A yes/no question starts with the verb. Say the st clearly.'),
+ v('sprechen','sprechen','to speak',['to speak','speak'],'SHPREH-khen','verb','Ich kann Deutsch sprechen.','I can speak German.','sp at the start sounds like “shp”. ch after e is the soft hiss from ich.')],[
+ s('Ich kann Deutsch sprechen.','I can speak German.','ichkann',{bwhy:MV}),
+ s('Kannst du Deutsch sprechen?','Can you speak German?','kannstdu',{bwhy:'A yes/no question starts with the modal. '+MV}),
+ s('Ich kann den Kaffee trinken.','I can drink the coffee.','trinken',{bl:2,ch:D,why:'Kaffee is masculine and is the object, so der becomes <b>den</b>.'}),
+ s('Kannst du eine Fahrkarte kaufen?','Can you buy a ticket?','kannstdu',{bl:2,ch:E,why:'Fahrkarte is feminine, so it is <b>eine</b>.'}),
+ s('Ja, ich kann das Brot kaufen.','Yes, I can buy the bread.','kaufen',{bwhy:MV}),
+ s('Heute kann ich Deutsch lernen.','Today I can learn German.','lernen',{bwhy:'Heute first, so kann stays second. '+MV})]),
+L(51,'Müssen: Ich muss …','Say what you have to do. Reuses heute, lernen, zahlen and den.','<b>Müssen</b> (must, have to): <b>ich muss</b>, <b>du musst</b>. The pattern is the same as können: modal second, other verb at the end. <b>Arbeiten</b> (to work) is regular.',[
+ v('ichmuss','Ich muss …','I must … / I have to …',['i must','i have to','i must have to'],'ikh MOOSS','modal pattern','Ich muss arbeiten.','I have to work.','Short u as in “put”, and a sharp s at the end.'),
+ v('dumusst','Du musst …','You must … / You have to …',['you must','you have to'],'doo MOOST','modal pattern','Du musst Deutsch lernen.','You have to learn German.','Short u. Say the final st clearly.'),
+ v('arbeiten','arbeiten','to work',['to work','work'],'AR-by-ten','verb','Heute muss ich arbeiten.','Today I have to work.','Soft r. ei sounds like “eye”.')],[
+ s('Ich muss arbeiten.','I have to work.','ichmuss',{bwhy:MV}),
+ s('Du musst Deutsch lernen.','You have to learn German.','dumusst',{bwhy:MV}),
+ s('Heute muss ich arbeiten.','Today I have to work.','arbeiten',{bwhy:'Heute first, so muss stays second and ich follows. '+MV}),
+ s('Muss ich die Rechnung zahlen?','Do I have to pay the bill?','zahlen',{bl:2,ch:D,why:'Rechnung is feminine, so die stays <b>die</b>.'}),
+ s('Ich muss den Bahnhof suchen.','I have to look for the station.','suchen',{bl:2,ch:D,why:'Bahnhof is masculine and is the object, so der becomes <b>den</b>.'})]),
+L(52,'Wollen: Ich will …','Say what you want to do. Reuses the modal pattern and everyday verbs.','<b>Wollen</b> (to want to): <b>ich will</b>, <b>du willst</b>. It can sound direct, so with strangers prefer <b>Ich möchte …</b>.',[
+ v('ichwill','Ich will …','I want to …',['i want to','i want','i will want'],'ikh VIL','modal pattern','Ich will Deutsch lernen.','I want to learn German.','w is “v”. Short i. Ich will does not mean “I will”.'),
+ v('willstdu','Willst du …?','Do you want to …?',['do you want to','do you want','want you'],'vilst DOO','modal question','Willst du Kaffee trinken?','Do you want to drink coffee?','w is “v”. Say the final st clearly.'),
+ v('spielen','spielen','to play',['to play','play'],'SHPEE-len','verb','Er will spielen.','He wants to play.','sp at the start sounds like “shp”. ie is a long “ee”.')],[
+ s('Ich will Deutsch lernen.','I want to learn German.','ichwill',{bwhy:MV}),
+ s('Willst du Kaffee trinken?','Do you want to drink coffee?','willstdu',{bwhy:'A yes/no question starts with the modal. '+MV}),
+ s('Ich will einen Tee trinken.','I want to drink a tea.','trinken',{bl:2,ch:E,why:'Tee is masculine and is the object, so it is <b>einen</b>.'}),
+ s('Er will spielen.','He wants to play.','spielen',{bwhy:'With er (he) the form is will, with no ending.'}),
+ s('Willst du ein Buch kaufen?','Do you want to buy a book?','willstdu',{bl:2,ch:E,why:'Buch is neuter, so it stays <b>ein</b>.'})]),
+L(53,'Boss round: Können, müssen, wollen','No new words. Mix all three modal verbs with objects and places.','The modal is always second, the other verb is last. Masculine objects take <b>den / einen</b>, and neuter places take <b>im</b>.',[],[
+ s('Ich kann Deutsch sprechen.','I can speak German.','ichkann',{bwhy:MV}),
+ s('Du musst heute arbeiten.','You have to work today.','dumusst',{bwhy:MV+' Heute is a time word inside the sentence.'}),
+ s('Ich will den Kaffee trinken.','I want to drink the coffee.','ichwill',{bl:2,ch:D,why:'Kaffee is masculine and is the object, so der becomes <b>den</b>.'}),
+ s('Kannst du eine Fahrkarte kaufen?','Can you buy a ticket?','kannstdu',{bl:2,ch:E,why:'Fahrkarte is feminine, so it is <b>eine</b>.'}),
+ s('Muss ich die Rechnung zahlen?','Do I have to pay the bill?','zahlen',{bl:2,ch:D,why:'Rechnung is feminine, so die stays <b>die</b>.'}),
+ s('Heute kann ich im Zimmer lernen.','Today I can study in the room.','lernen',{bl:3,ch:I,why:'Zimmer is neuter, so in dem becomes <b>im</b>.'}),
+ s('Du willst ein Haus kaufen.','You want to buy a house.','kaufen',{bl:2,ch:E,why:'Haus is neuter, so it stays <b>ein</b>.'})],['schluessel','kind']),
+L(54,'Die Hose, das Hemd, der Schuh','Talk about clothes. Reuses brauchen, kaufen, suchen, colours and nicht.','Clothes follow the same rules: <b>Ich brauche eine Hose</b> (feminine), <b>Ich kaufe das Hemd</b> (neuter), <b>Ich suche den Schuh</b> (masculine, so den).',[
+ nn('hose','die','Hose','trousers','dee HOH-zuh','feminine','die Hosen','Die Hose ist blau.','The trousers are blue.','Long o. s before a vowel is voiced like z.'),
+ nn('hemd','das','Hemd','shirt','dahs HEMT','neuter','die Hemden','Das Hemd ist rot.','The shirt is red.','Short e. The final d sounds like t.'),
+ nn('schuh','der','Schuh','shoe','dair SHOO','masculine','die Schuhe','Ich suche den Schuh.','I am looking for the shoe.','sch is “sh”. The h is silent and makes the u long.')],[
+ s('Ich brauche eine Hose.','I need trousers.','hose',{bl:2,ch:E,why:'Hose is feminine, so it is <b>eine</b>.'}),
+ s('Ich kaufe das Hemd.','I buy the shirt.','hemd',{bl:2,ch:D,why:'Hemd is neuter, so das stays <b>das</b>.'}),
+ s('Ich suche den Schuh.','I am looking for the shoe.','schuh',{bl:2,ch:D,why:'Schuh is masculine and is the object, so der becomes <b>den</b>.'}),
+ s('Die Hose ist blau.','The trousers are blue.','hose'),
+ s('Das Hemd ist nicht groß.','The shirt is not big.','hemd',{bwhy:'Nicht comes right before the adjective.'}),
+ s('Ich möchte ein Hemd.','I would like a shirt.','hemd',{bl:2,ch:E,why:'Hemd is neuter, so it stays <b>ein</b>.'})],['hose','hemd','schuh']),
+L(55,'Beruf: Lehrer, Lehrerin','Say what job someone does. Reuses Arzt, ich bin, er ist and sie ist.','Jobs usually take <b>no article</b> after sein: <b>Ich bin Lehrer.</b> A woman adds <b>-in</b>: <b>Sie ist Lehrerin.</b> The job itself is <b>der Beruf</b>.',[
+ nn('lehrer','der','Lehrer','teacher (male)','dair LAY-rer','masculine','die Lehrer','Ich bin Lehrer.','I am a teacher.','Long e, like “ay”. The final -er is a relaxed “uh”.'),
+ nn('lehrerin','die','Lehrerin','teacher (female)','dee LAY-rer-in','feminine','die Lehrerinnen','Sie ist Lehrerin.','She is a teacher.','Same as Lehrer, plus a short “in”.'),
+ nn('beruf','der','Beruf','job / profession','dair beh-ROOF','masculine','die Berufe','Ich habe einen Beruf.','I have a job.','Stress the last syllable: beh-ROOF.')],[
+ s('Ich bin Lehrer.','I am a teacher.','lehrer',{bwhy:'Jobs take no article after sein.'}),
+ s('Sie ist Lehrerin.','She is a teacher.','lehrerin',{bwhy:'A woman adds -in: Lehrerin. No article.'}),
+ s('Er ist Arzt.','He is a doctor.','arzt',{bwhy:'Jobs take no article after sein.'}),
+ s('Ich habe einen Beruf.','I have a job.','beruf',{bl:2,ch:E,why:'Beruf is masculine and is the object, so it is <b>einen</b>.'}),
+ s('Der Beruf ist gut.','The job is good.','beruf'),
+ s('Ich muss heute arbeiten.','I have to work today.','arbeiten',{bwhy:MV})],['beruf','lehrer']),
+L(56,'Im Büro: Büro, Chef, Arbeit','Talk about the workplace. Reuses im, arbeiten, den and Chef-type objects.','The workplace: <b>Ich arbeite im Büro.</b> (Büro is neuter, so <b>im</b>.) <b>Ich suche den Chef.</b> (Chef is masculine, so <b>den</b>.)',[
+ nn('buero','das','Büro','office','dahs bue-ROH','neuter','die Büros','Ich arbeite im Büro.','I work in the office.','ü: round the lips and say “ee”. Stress the last syllable.'),
+ nn('chef','der','Chef','boss','dair SHEF','masculine','die Chefs','Der Chef ist im Büro.','The boss is in the office.','French ch: “sh”. Short e.'),
+ nn('arbeit','die','Arbeit','work','dee AR-bite','feminine','','Die Arbeit ist gut.','The work is good.','ei sounds like “eye”. Arbeit has no common plural.')],[
+ s('Ich arbeite im Büro.','I work in the office.','buero',{bl:2,ch:I,why:'Büro is neuter, so in dem becomes <b>im</b>.'}),
+ s('Der Chef ist im Büro.','The boss is in the office.','chef',{bl:3,ch:I,why:'Büro is neuter, so in dem becomes <b>im</b>.'}),
+ s('Ich suche den Chef.','I am looking for the boss.','chef',{bl:2,ch:D,why:'Chef is masculine and is the object, so der becomes <b>den</b>.'}),
+ s('Die Arbeit ist gut.','The work is good.','arbeit'),
+ s('Der Chef hat eine Uhr.','The boss has a clock.','chef',{bl:3,ch:E,why:'Uhr is feminine, so it is <b>eine</b>.'}),
+ s('Ich muss im Büro arbeiten.','I have to work in the office.','buero',{bl:2,ch:I,why:'Büro is neuter, so in dem becomes <b>im</b>. '+MV})],['buero']),
+L(57,'Boss round: Beruf und Arbeit','No new words. Combine jobs, the office, clothes and the modal verbs.','Check: no article for jobs after sein, <b>im</b> for Büro, <b>den / einen</b> for masculine objects, and the modal second with the verb at the end.',[],[
+ s('Der Lehrer muss im Büro arbeiten.','The teacher has to work in the office.','lehrer',{bl:3,ch:I,why:'Büro is neuter, so in dem becomes <b>im</b>.'}),
+ s('Ich kann den Chef suchen.','I can look for the boss.','chef',{bl:2,ch:D,why:'Chef is masculine and is the object, so der becomes <b>den</b>.'}),
+ s('Die Lehrerin will ein Hemd kaufen.','The teacher wants to buy a shirt.','hemd',{bl:3,ch:E,why:'Hemd is neuter, so it stays <b>ein</b>.'}),
+ s('Er ist Arzt, und sie ist Lehrerin.','He is a doctor, and she is a teacher.','arzt',{bwhy:'Jobs take no article after sein. Two full sentences joined by und.'}),
+ s('Der Chef hat zwanzig Euro.','The boss has twenty euros.','chef',{bwhy:'After a number, Euro does not change.'}),
+ s('Kannst du die Hose kaufen?','Can you buy the trousers?','hose',{bl:2,ch:D,why:'Hose is feminine, so die stays <b>die</b>.'}),
+ s('Heute muss ich im Büro arbeiten.','Today I have to work in the office.','arbeit',{bl:3,ch:I,why:'Büro is neuter, so in dem becomes <b>im</b>.'})],['buero','schuh','hose'])
+];})());
+LESSONS.push(...(()=>{
+const s=(de,en,it,o={})=>({de,en,it,...o});
+const v=(id,de,en,acc,pron,type,ex,exEn,tip,parts)=>({id,de,en,acc,pron,type,ex,exEn,tip,parts});
+const nn=(id,art,de,en,pron,gender,plural,ex,exEn,tip)=>({id,art,de,en:'the '+en,acc:[en,'the '+en],pron,type:'noun',gender,plural,ex,exEn,tip});
+const L=(id,title,goal,note,items,sents,plurals)=>({id,title,goal,note,items,sents,plurals});
+const D=['der','den','die','das'],E=['ein','eine','einen'],I=['im','in der','in die','in den'];
+const Q='The question word comes first, then the verb, then the subject.';
+return [
+L(58,'Was, wann, warum','Ask what, when and why. Reuses wer, wo, wie and the questions you already know.','Question words: <b>wer</b> (who), <b>was</b> (what), <b>wo</b> (where), <b>wann</b> (when), <b>warum</b> (why), <b>wie</b> (how). The pattern is always: question word, verb, subject.',[
+ v('was','Was?','what',['what'],'vahs','question word','Was ist das?','What is that?','w is “v”. Short a, and a sharp s.'),
+ v('wann','Wann?','when',['when'],'vahn','question word','Wann ist der Zug?','When is the train?','w is “v”. Short a. Do not confuse it with Wo (where).'),
+ v('warum','Warum?','why',['why'],'vah-ROOM','question word','Warum bist du hier?','Why are you here?','Stress the second syllable: vah-ROOM.')],[
+ s('Was ist das?','What is that?','was',{bwhy:Q}),
+ s('Was möchtest du?','What would you like?','was',{bwhy:Q}),
+ s('Wann ist der Zug?','When is the train?','wann',{bl:2,ch:D,why:'Zug is masculine. It is the subject here, so der stays <b>der</b>.'}),
+ s('Warum bist du hier?','Why are you here?','warum',{bwhy:Q}),
+ s('Wann kannst du arbeiten?','When can you work?','wann',{bwhy:Q+' The modal is second, and arbeiten goes to the end.'}),
+ s('Was kostet der Kaffee?','How much is the coffee?','was',{bl:2,ch:D,why:'Kaffee is masculine. It is the subject of kostet, so der stays <b>der</b>.'})]),
+L(59,'Dreizehn, fünfzehn, siebzehn','Count the teens. Reuses numbers 1 to 12, Uhr and Euro.','The teens are the unit plus <b>-zehn</b>: <b>drei</b>zehn, <b>fünf</b>zehn. Watch siebzehn: <b>sieb</b>zehn, losing -en. Germans often say <b>dreizehn Uhr</b> (1 pm) for the time.',[
+ v('dreizehn','dreizehn','thirteen',['thirteen','13'],'DRY-tsayn','number','Es ist dreizehn Uhr.','It is one pm (13:00).','drei is “dry”, and zehn is “tsayn”.'),
+ v('fuenfzehn','fünfzehn','fifteen',['fifteen','15'],'FUENF-tsayn','number','Ich habe fünfzehn Euro.','I have fifteen euros.','ü: round the lips and say “ee”.'),
+ v('siebzehn','siebzehn','seventeen',['seventeen','17'],'ZEEP-tsayn','number','Hier sind siebzehn Äpfel.','Here are seventeen apples.','Irregular: sieben becomes sieb-. The b sounds like p.')],[
+ s('Es ist dreizehn Uhr.','It is one pm.','dreizehn',{bwhy:'German often uses the 24-hour clock: dreizehn Uhr is 1 pm.'}),
+ s('Es ist fünfzehn Uhr.','It is three pm.','fuenfzehn',{bwhy:'German often uses the 24-hour clock: fünfzehn Uhr is 3 pm.'}),
+ s('Ich habe fünfzehn Euro.','I have fifteen euros.','fuenfzehn',{bwhy:'After a number, Euro does not change.'}),
+ s('Hier sind siebzehn Äpfel.','Here are seventeen apples.','siebzehn',{bwhy:'More than one thing: ist becomes sind, and the noun is plural.'}),
+ s('Das Hemd kostet fünfzehn Euro.','The shirt costs fifteen euros.','fuenfzehn',{bwhy:'Kostet is second. After a number, Euro does not change.'})]),
+L(60,'Dreißig, vierzig, hundert','Count in tens and talk prices. Reuses kostet, Euro and the clothing words.','Tens end in <b>-zig</b>: vier<b>zig</b>. The exception is <b>dreißig</b> (30), which ends in <b>-ßig</b>. <b>Hundert</b> is 100.',[
+ v('dreissig','dreißig','thirty',['thirty','30'],'DRY-ssikh','number','Das Hemd kostet dreißig Euro.','The shirt costs thirty euros.','ß is a sharp s. The ending -ig sounds like “ikh”.'),
+ v('vierzig','vierzig','forty',['forty','40'],'FEER-tsikh','number','Die Hose kostet vierzig Euro.','The trousers cost forty euros.','ie is a long “ee”. The ending -zig sounds like “tsikh”.'),
+ v('hundert','hundert','one hundred',['one hundred','hundred','100'],'HOON-dert','number','Ich habe hundert Euro.','I have one hundred euros.','Short u. The final t is crisp.')],[
+ s('Das Hemd kostet dreißig Euro.','The shirt costs thirty euros.','dreissig',{bwhy:'After a number, Euro does not change.'}),
+ s('Die Hose kostet vierzig Euro.','The trousers cost forty euros.','vierzig',{bwhy:'After a number, Euro does not change.'}),
+ s('Ich habe hundert Euro.','I have one hundred euros.','hundert',{bwhy:'After a number, Euro does not change.'}),
+ s('Was kostet die Hose?','How much are the trousers?','hose',{bl:2,ch:D,why:'Hose is feminine, so die stays <b>die</b>.'}),
+ s('Der Schuh kostet nicht hundert Euro.','The shoe does not cost one hundred euros.','schuh',{bwhy:'Nicht goes before the price.'})]),
+L(61,'Boss round: Fragen und Zahlen','No new words. Combine question words, numbers and prices.','Question word first, verb second. After a number, <b>Euro</b> never changes.',[],[
+ s('Was kostet die Hose?','How much are the trousers?','hose',{bl:2,ch:D,why:'Hose is feminine, so die stays <b>die</b>.'}),
+ s('Die Hose kostet vierzig Euro.','The trousers cost forty euros.','vierzig',{bwhy:'After a number, Euro does not change.'}),
+ s('Wann kannst du arbeiten?','When can you work?','wann',{bwhy:Q+' The modal is second, and arbeiten goes to the end.'}),
+ s('Es ist fünfzehn Uhr.','It is three pm.','fuenfzehn',{bwhy:'German often uses the 24-hour clock.'}),
+ s('Warum muss ich zahlen?','Why do I have to pay?','warum',{bwhy:Q+' Muss is second, and zahlen goes to the end.'}),
+ s('Ich habe hundert Euro.','I have one hundred euros.','hundert',{bwhy:'After a number, Euro does not change.'}),
+ s('Wer ist der Chef?','Who is the boss?','wer',{bl:2,ch:D,why:'Chef is masculine. It is the subject here, so der stays <b>der</b>.'})],['hose','hemd']),
+L(62,'Fußball, Musik, lesen','Talk about hobbies. Reuses spielen, können, wollen and Buch.','Sports and languages take no article: <b>Ich spiele Fußball.</b> <b>Lesen</b> (to read) is irregular in the present, but the infinitive works with a modal: <b>Ich kann lesen.</b>',[
+ nn('fussball','der','Fußball','football / soccer','dair FOOSS-bahl','masculine','die Fußbälle','Der Fußball ist rot.','The football is red.','ß is a sharp s. Stress the first syllable.'),
+ nn('musik','die','Musik','music','dee moo-ZEEK','feminine','','Die Musik ist gut.','The music is good.','Stress the last syllable: moo-ZEEK.'),
+ v('lesen','lesen','to read',['to read','read'],'LAY-zen','verb','Ich kann das Buch lesen.','I can read the book.','Long e. s before a vowel is voiced like z.')],[
+ s('Ich spiele Fußball.','I play football.','fussball',{bwhy:'Sports take no article: Fußball.'}),
+ s('Du kannst Fußball spielen.','You can play football.','fussball',{bwhy:'The modal is second, and spielen goes to the end.'}),
+ s('Die Musik ist gut.','The music is good.','musik'),
+ s('Ich kann das Buch lesen.','I can read the book.','lesen',{bl:2,ch:D,why:'Buch is neuter, so das stays <b>das</b>.'}),
+ s('Du willst die Musik kaufen.','You want to buy the music.','musik',{bl:2,ch:D,why:'Musik is feminine, so die stays <b>die</b>.'}),
+ s('Ich will heute Fußball spielen.','I want to play football today.','fussball',{bwhy:'The modal is second, and spielen goes to the end.'})],['fussball']),
+L(63,'Gern: Ich koche gern','Say what you like doing. Reuses spielen, lernen, trinken and the present tense.','<b>Gern</b> after a verb means “willingly”, so “like to”: <b>Ich koche gern.</b> It goes after the verb and subject. A general thing needs no article: <b>Ich trinke gern Tee.</b>',[
+ v('gern','gern','gladly / like to',['gladly','like to','happily','willingly'],'gairn','adverb','Ich lerne gern Deutsch.','I like learning German.','Hard g. Long e, like “air”, and a soft r.'),
+ v('kochen','kochen','to cook',['to cook','cook'],'KO-khen','verb','Ich koche gern.','I like to cook.','Short o. ch after o is the harsh throat sound.'),
+ v('schwimmen','schwimmen','to swim',['to swim','swim'],'SHVIM-men','verb','Du schwimmst gern.','You like to swim.','schw sounds like “shv”. Short i.')],[
+ s('Ich koche gern.','I like to cook.','kochen',{bwhy:'Gern goes after the verb and the subject.'}),
+ s('Du schwimmst gern.','You like to swim.','schwimmen',{bwhy:'Gern goes after the verb and the subject.'}),
+ s('Er spielt gern Fußball.','He likes to play football.','gern',{bwhy:'Gern goes after the verb and the subject.'}),
+ s('Ich lerne gern Deutsch.','I like learning German.','gern',{bwhy:'Gern goes after the verb and the subject.'}),
+ s('Kochst du gern?','Do you like to cook?','kochen',{bwhy:'A yes/no question starts with the verb.'}),
+ s('Ich trinke gern Tee.','I like drinking tea.','gern',{bwhy:'A general thing takes no article: Tee.'})]),
+L(64,'Im Januar, im Mai, im Oktober','Talk about months. Reuses im, es ist, kalt and the weather words.','Months are masculine and take <b>im</b> for “in”: <b>im Januar</b>, <b>im Mai</b>. If it starts the sentence, the verb stays second: <b>Im Mai kaufe ich eine Hose.</b>',[
+ nn('januar','der','Januar','January','dair YAHN-oo-ar','masculine','','Im Januar ist es kalt.','In January it is cold.','j is “y”. Stress the first syllable.'),
+ nn('mai','der','Mai','May','dair MY','masculine','','Der Mai ist gut.','May is good.','Like English “my”.'),
+ nn('oktober','der','Oktober','October','dair ok-TOH-ber','masculine','','Im Oktober regnet es.','In October it rains.','Stress the second syllable: ok-TOH-ber.')],[
+ s('Im Januar ist es kalt.','In January it is cold.','januar',{bwhy:'Im Januar comes first, so ist stays second.'}),
+ s('Im Mai ist es nicht kalt.','In May it is not cold.','mai',{bwhy:'Im Mai comes first, so ist stays second. Nicht goes before kalt.'}),
+ s('Im Oktober regnet es.','In October it rains.','oktober',{bwhy:'Im Oktober comes first, so regnet stays second and es follows.'}),
+ s('Im Mai kaufe ich eine Hose.','In May I buy trousers.','mai',{bwhy:'Im Mai comes first, so kaufe stays second.'}),
+ s('Der Mai ist gut.','May is good.','mai')]),
+L(65,'Boss round: Hobbys und Monate','No new words. Combine questions, hobbies, months and modal verbs.','Check: verb second (even after Im Mai), the modal with the verb at the end, <b>im</b> for neuter places, <b>den / eine / ein</b> for objects.',[],[
+ s('Im Mai spiele ich Fußball.','In May I play football.','mai',{bwhy:'Im Mai comes first, so spiele stays second.'}),
+ s('Ich koche gern, und du schwimmst gern.','I like to cook, and you like to swim.','gern',{bwhy:'Two full sentences joined by und, each with the verb second.'}),
+ s('Wann ist der Bus?','When is the bus?','wann',{bl:2,ch:D,why:'Bus is masculine. It is the subject here, so der stays <b>der</b>.'}),
+ s('Du willst die Musik kaufen.','You want to buy the music.','musik',{bl:2,ch:D,why:'Musik is feminine, so die stays <b>die</b>.'}),
+ s('Im Oktober muss ich im Büro arbeiten.','In October I have to work in the office.','oktober',{bl:4,ch:I,why:'Büro is neuter, so in dem becomes <b>im</b>.'}),
+ s('Was möchtest du im Januar kaufen?','What would you like to buy in January?','januar',{bwhy:Q+' The modal is second, and kaufen goes to the end.'}),
+ s('Warum ist der Mai gut?','Why is May good?','mai',{bl:2,ch:D,why:'Mai is masculine. It is the subject here, so der stays <b>der</b>.'})],['buero','chef'])
+];})());
+LESSONS.push(...(()=>{
+const s=(de,en,it,o={})=>({de,en,it,...o});
+const v=(id,de,en,acc,pron,type,ex,exEn,tip,parts)=>({id,de,en,acc,pron,type,ex,exEn,tip,parts});
+const nn=(id,art,de,en,pron,gender,plural,ex,exEn,tip)=>({id,art,de,en:'the '+en,acc:[en,'the '+en],pron,type:'noun',gender,plural,ex,exEn,tip});
+const L=(id,title,goal,note,items,sents,plurals)=>({id,title,goal,note,items,sents,plurals});
+const po=b=>[b,b+'e',b+'en'],D=['der','den','die','das'],I=['im','in der','in die','in den'];
+const SP='A separable verb splits: the prefix goes to the very end.';
+return [
+L(66,'Mein, meine, dein, deine','Say “my” and “your”. Reuses Bruder, Schwester, Kind, Schlüssel and Das ist …','Possessives take the same endings as <b>ein / eine</b>: <b>mein</b> Bruder (m), <b>meine</b> Schwester (f), <b>mein</b> Kind (n). Same for <b>dein / deine</b> (your, informal).',[
+ {...v('mein','mein / meine','my',['my'],'mine / MINE-uh','possessive article','Das ist mein Bruder.','That is my brother.','ei sounds like “eye”. Use mein with der and das nouns, meine with die nouns.'),accDe:['mein meine','mein/meine']},
+ {...v('dein','dein / deine','your (informal)',['your','your informal'],'dine / DINE-uh','possessive article','Ist das deine Tasche?','Is that your bag?','Same sound as mein. Use it with someone you call du.'),accDe:['dein deine','dein/deine']}],[
+ s('Das ist mein Bruder.','That is my brother.','mein',{bl:2,ch:po('mein'),why:'Bruder is masculine, so it is <b>mein</b>, like ein.'}),
+ s('Das ist meine Schwester.','That is my sister.','mein',{bl:2,ch:po('mein'),why:'Schwester is feminine, so it is <b>meine</b>, like eine.'}),
+ s('Das ist mein Kind.','That is my child.','mein',{bl:2,ch:po('mein'),why:'Kind is neuter, so it is <b>mein</b>, like ein.'}),
+ s('Ist das deine Tasche?','Is that your bag?','dein',{bl:2,ch:po('dein'),why:'Tasche is feminine, so it is <b>deine</b>.'}),
+ s('Wo ist mein Schlüssel?','Where is my key?','mein',{bl:2,ch:po('mein'),why:'Schlüssel is masculine and is the subject here, so it is <b>mein</b>.'})]),
+L(67,'Meinen, deinen: masculine objects','Use my and your as objects. Reuses den, einen and the accusative.','Just like <b>einen</b>, masculine objects take <b>meinen / deinen</b>: <b>Ich suche meinen Mantel.</b> Feminine <b>meine</b> and neuter <b>mein</b> do not change.',[
+ {...v('meinen','meinen','my (masculine, as object)',['my'],'MINE-en','possessive, accusative','Ich suche meinen Mantel.','I am looking for my coat.','Same as einen: ei sounds like “eye”.')},
+ {...v('deinen','deinen','your (masculine, as object)',['your'],'DINE-en','possessive, accusative','Hast du deinen Schlüssel?','Do you have your key?','Same as meinen, with d.')},
+ nn('mantel','der','Mantel','coat','dair MAHN-tel','masculine','die Mäntel','Der Mantel ist blau.','The coat is blue.','Short a. Stress the first syllable.')],[
+ s('Ich habe meinen Schlüssel.','I have my key.','meinen',{bl:2,ch:po('mein'),why:'Schlüssel is masculine and is the object, so it is <b>meinen</b>.'}),
+ s('Ich suche meinen Mantel.','I am looking for my coat.','mantel',{bl:2,ch:po('mein'),why:'Mantel is masculine and is the object, so it is <b>meinen</b>.'}),
+ s('Ich habe meine Tasche.','I have my bag.','meinen',{bl:2,ch:po('mein'),why:'Tasche is feminine. Feminine does not change, so it is <b>meine</b>.'}),
+ s('Ich habe mein Buch.','I have my book.','meinen',{bl:2,ch:po('mein'),why:'Buch is neuter. Neuter does not change, so it is <b>mein</b>.'}),
+ s('Hast du deinen Schlüssel?','Do you have your key?','deinen',{bl:2,ch:po('dein'),why:'Schlüssel is masculine and is the object, so it is <b>deinen</b>.'})],['mantel']),
+L(68,'Sein, ihr: his and her','Say “his” and “her”. Reuses er, sie, Bruder, Schwester and the endings.','<b>Sein</b> (his) and <b>ihr</b> (her) take the same endings: <b>sein Bruder</b>, <b>ihre Schwester</b>, <b>seinen Freund</b>. This <b>sein</b> is a possessive, not the verb “to be”.',[
+ {...v('seinp','sein / seine','his',['his'],'zine / ZINE-uh','possessive article','Das ist sein Bruder.','That is his brother.','s before a vowel or ei is voiced like z.'),accDe:['sein seine','sein/seine']},
+ {...v('ihr','ihr / ihre','her',['her'],'eer / EER-uh','possessive article','Das ist ihre Schwester.','That is her sister.','ih is a long “ee”, with a very soft r.'),accDe:['ihr ihre','ihr/ihre']},
+ nn('freund','der','Freund','friend (male)','dair FROYNT','masculine','die Freunde','Er sucht seinen Freund.','He is looking for his friend.','eu sounds like “oy”. The final d sounds like t.')],[
+ s('Das ist sein Bruder.','That is his brother.','seinp',{bl:2,ch:po('sein'),why:'Bruder is masculine and is the subject here, so it is <b>sein</b>.'}),
+ s('Das ist ihre Schwester.','That is her sister.','ihr',{bl:2,ch:po('ihr'),why:'Schwester is feminine, so it is <b>ihre</b>.'}),
+ s('Er sucht seinen Freund.','He is looking for his friend.','freund',{bl:2,ch:po('sein'),why:'Freund is masculine and is the object, so it is <b>seinen</b>.'}),
+ s('Sie hat ihren Schlüssel.','She has her key.','ihr',{bl:2,ch:po('ihr'),why:'Schlüssel is masculine and is the object, so it is <b>ihren</b>.'}),
+ s('Ist das sein Haus?','Is that his house?','seinp',{bl:2,ch:po('sein'),why:'Haus is neuter, so it is <b>sein</b>.'})],['freund']),
+L(69,'Boss round: Meine Familie','No new words. Mix possessives with family, work and objects.','Check the possessive ending for each noun: <b>mein / meine / meinen</b>. Only masculine objects change to <b>-en</b>.',[],[
+ s('Meine Familie ist groß.','My family is big.','mein',{bwhy:'Familie is feminine, so it is meine.'}),
+ s('Mein Vater ist Lehrer.','My father is a teacher.','mein',{bwhy:'Vater is masculine, so mein. Jobs take no article.'}),
+ s('Meine Mutter arbeitet im Büro.','My mother works in the office.','mein',{bl:3,ch:I,why:'Büro is neuter, so in dem becomes <b>im</b>. With sie/Mutter the verb ends in -et or -t.'}),
+ s('Das ist dein Schlüssel.','That is your key.','dein',{bl:2,ch:po('dein'),why:'Schlüssel is masculine and is the subject here, so it is <b>dein</b>.'}),
+ s('Er hat seine Tasche.','He has his bag.','seinp',{bl:2,ch:po('sein'),why:'Tasche is feminine, so it is <b>seine</b>.'}),
+ s('Sie sucht ihren Mantel.','She is looking for her coat.','ihr',{bl:2,ch:po('ihr'),why:'Mantel is masculine and is the object, so it is <b>ihren</b>.'}),
+ s('Wo ist deine Fahrkarte?','Where is your ticket?','dein',{bl:2,ch:po('dein'),why:'Fahrkarte is feminine, so it is <b>deine</b>.'})],['freund','mantel','kind']),
+L(70,'Aufstehen, einkaufen, anrufen','Use separable verbs for daily routines. Reuses um, Uhr, kaufen and possessives.','Separable verbs split: <b>Ich stehe um sieben Uhr auf.</b> The prefix goes to the end. With a modal they stay together: <b>Ich muss um sieben Uhr aufstehen.</b> <b>Um sieben Uhr</b> means “at seven o’clock”.',[
+ v('aufstehen','aufstehen','to get up',['to get up','get up','to stand up'],'OWF-shtay-en','separable verb','Ich stehe um sieben Uhr auf.','I get up at seven o’clock.','au is “ow”. st sounds like “sht”. Auf goes to the end: ich stehe … auf.'),
+ v('einkaufen','einkaufen','to shop',['to shop','shop','to go shopping','to buy'],'INE-kow-fen','separable verb','Du kaufst heute ein.','You shop today.','ein sounds like “ine”. Ein goes to the end: ich kaufe … ein.'),
+ v('anrufen','anrufen','to call (phone)',['to call','call','to phone','to call phone'],'AHN-roo-fen','separable verb','Ich rufe meinen Bruder an.','I call my brother.','Stress the first syllable. An goes to the end: ich rufe … an.')],[
+ s('Ich stehe um sieben Uhr auf.','I get up at seven o’clock.','aufstehen',{bwhy:SP}),
+ s('Du kaufst heute ein.','You shop today.','einkaufen',{bwhy:SP}),
+ s('Ich rufe meinen Bruder an.','I call my brother.','anrufen',{bl:2,ch:po('mein'),why:'Bruder is masculine and is the object, so it is <b>meinen</b>.'}),
+ s('Er ruft die Mutter an.','He calls the mother.','anrufen',{bl:2,ch:D,why:'Mutter is feminine, so die stays <b>die</b>.'}),
+ s('Wann stehst du auf?','When do you get up?','aufstehen',{bwhy:'Wann, then stehst, then du, then auf at the end.'}),
+ s('Ich muss um sieben Uhr aufstehen.','I have to get up at seven o’clock.','aufstehen',{bwhy:'With a modal, the verb stays together at the end.'})]),
+L(71,'Frühstück, Mittagessen, Abendessen','Talk about meals. Reuses das, Uhr, um, möchte and kosten.','The three meals are all neuter: <b>das</b> Frühstück, <b>das</b> Mittagessen, <b>das</b> Abendessen. Time: <b>Um sieben Uhr ist das Frühstück.</b>',[
+ nn('fruehstueck','das','Frühstück','breakfast','dahs FRUE-shtuek','neuter','','Das Frühstück ist gut.','The breakfast is good.','ü: round the lips and say “ee”. st sounds like “sht”.'),
+ nn('mittagessen','das','Mittagessen','lunch','dahs MIT-tahk-es-sen','neuter','','Das Mittagessen kostet zehn Euro.','Lunch costs ten euros.','The g in tag sounds like k. Short i.'),
+ nn('abendessen','das','Abendessen','dinner','dahs AH-bent-es-sen','neuter','','Wann ist das Abendessen?','When is dinner?','Long a. The d in Abend sounds like t.')],[
+ s('Das Frühstück ist gut.','Breakfast is good.','fruehstueck'),
+ s('Ich möchte das Frühstück.','I would like breakfast.','fruehstueck',{bl:2,ch:D,why:'Frühstück is neuter, so das stays <b>das</b>.'}),
+ s('Wann ist das Abendessen?','When is dinner?','abendessen',{bl:2,ch:D,why:'Abendessen is neuter, so das stays <b>das</b>.'}),
+ s('Das Mittagessen kostet zehn Euro.','Lunch costs ten euros.','mittagessen',{bwhy:'Kostet is second. After a number, Euro does not change.'}),
+ s('Um sieben Uhr ist das Frühstück.','At seven o’clock is breakfast.','fruehstueck',{bl:4,ch:D,why:'Frühstück is neuter, so das stays <b>das</b>. Um sieben Uhr is first, so ist stays second.'}),
+ s('Ich habe das Mittagessen gezahlt.','I paid for lunch.','mittagessen',{bl:2,ch:D,why:'Mittagessen is neuter, so das stays <b>das</b>. The participle goes to the end.'})]),
+L(72,'Halb, Viertel, vor, nach','Tell the time beyond the hour. Reuses Es ist … Uhr and the numbers.','<b>Halb acht</b> means half <b>to</b> eight, so 7:30. <b>Viertel nach sieben</b> is 7:15, <b>Viertel vor acht</b> is 7:45. <b>Nach</b> is past, <b>vor</b> is to.',[
+ v('halb','halb','half',['half'],'hahlp','time word','Es ist halb acht.','It is half past seven (7:30).','Short a. The final b sounds like p.'),
+ nn('viertel','das','Viertel','quarter','dahs FEER-tel','neuter','','Es ist Viertel nach sieben.','It is a quarter past seven.','ie is a long “ee”, and a soft r.'),
+ v('vor','vor','before / to (in time)',['before','to','in front of','of'],'fohr','preposition','Es ist Viertel vor acht.','It is a quarter to eight.','Long o, and a soft r. Vor is the opposite of nach.')],[
+ s('Es ist halb acht.','It is half past seven.','halb',{bwhy:'Halb acht means half to eight: 7:30.'}),
+ s('Es ist Viertel nach sieben.','It is a quarter past seven.','viertel',{bwhy:'Viertel nach sieben is 7:15.'}),
+ s('Es ist Viertel vor acht.','It is a quarter to eight.','vor',{bwhy:'Viertel vor acht is 7:45.'}),
+ s('Es ist zehn nach zwei.','It is ten past two.','nach',{bwhy:'Zehn nach zwei is 2:10.'}),
+ s('Es ist fünf vor drei.','It is five to three.','vor',{bwhy:'Fünf vor drei is 2:55.'})]),
+L(73,'Boss round: Mein Tag','No new words. Combine routines, the clock, possessives and objects.','Check: the separable prefix at the end, <b>um … Uhr</b> times, <b>meinen / seinen</b> for masculine objects, and <b>im</b> for Büro.',[],[
+ s('Ich stehe um halb sieben auf.','I get up at half past six.','halb',{bwhy:SP+' Halb sieben is 6:30.'}),
+ s('Das Frühstück ist um Viertel nach sieben.','Breakfast is at a quarter past seven.','viertel',{bwhy:'Um Viertel nach sieben means at 7:15.'}),
+ s('Meine Mutter ruft meinen Bruder an.','My mother calls my brother.','anrufen',{bl:3,ch:po('mein'),why:'Bruder is masculine and is the object, so it is <b>meinen</b>.'}),
+ s('Ich muss um acht Uhr im Büro arbeiten.','I have to work in the office at eight.','arbeiten',{bl:5,ch:I,why:'Büro is neuter, so in dem becomes <b>im</b>.'}),
+ s('Wann kaufst du heute ein?','When do you shop today?','einkaufen',{bwhy:SP}),
+ s('Dein Bruder hat seinen Schlüssel.','Your brother has his key.','seinp',{bl:3,ch:po('sein'),why:'Schlüssel is masculine and is the object, so it is <b>seinen</b>.'}),
+ s('Wo ist ihr Mantel?','Where is her coat?','ihr',{bl:2,ch:po('ihr'),why:'Mantel is masculine and is the subject here, so it is <b>ihr</b>.'})],['freund','mantel','kind'])
+];})());
+LESSONS.push(...(()=>{
+const s=(de,en,it,o={})=>({de,en,it,...o});
+const v=(id,de,en,acc,pron,type,ex,exEn,tip,parts)=>({id,de,en,acc,pron,type,ex,exEn,tip,parts});
+const nn=(id,art,de,en,pron,gender,plural,ex,exEn,tip)=>({id,art,de,en:'the '+en,acc:[en,'the '+en],pron,type:'noun',gender,plural,ex,exEn,tip});
+const L=(id,title,goal,note,items,sents,plurals)=>({id,title,goal,note,items,sents,plurals});
+const po=b=>[b,b+'e',b+'en'],aj=b=>[b,b+'e',b+'en',b+'er',b+'es'],D=['der','den','die','das'];
+return [
+L(74,'Kein, keine: no and not a','Say you do not have something. Reuses haben, Brot, Kaffee, Tasche and Tisch.','<b>Kein</b> is the negative of ein: <b>kein Brot</b> (n), <b>keine Zeit</b> (f), <b>keinen Kaffee</b> (m, as object). Use <b>nicht</b> for adjectives and verbs, <b>kein</b> for nouns.',[
+ {...v('kein','kein / keine','no / not a',['no','not a','not any','none'],'kine / KINE-uh','negative article','Ich habe kein Brot.','I have no bread.','ei sounds like “eye”. Same endings as ein: kein, keine, keinen.'),accDe:['kein keine','kein/keine']},
+ nn('zeit','die','Zeit','time','dee TSITE','feminine','','Ich habe keine Zeit.','I have no time.','z is “ts”. ei sounds like “eye”.'),
+ nn('problem','das','Problem','problem','dahs pro-BLAYM','neuter','die Probleme','Das ist kein Problem.','That is no problem.','Stress the last syllable: pro-BLAYM.')],[
+ s('Ich habe kein Brot.','I have no bread.','kein',{bl:2,ch:po('kein'),why:'Brot is neuter, so it is <b>kein</b>, like ein.'}),
+ s('Ich habe keine Zeit.','I have no time.','zeit',{bl:2,ch:po('kein'),why:'Zeit is feminine, so it is <b>keine</b>.'}),
+ s('Das ist kein Problem.','That is no problem.','problem',{bl:2,ch:po('kein'),why:'Problem is neuter, so it is <b>kein</b>.'}),
+ s('Ich habe keinen Kaffee.','I have no coffee.','kein',{bl:2,ch:po('kein'),why:'Kaffee is masculine and is the object, so it is <b>keinen</b>.'}),
+ s('Hast du keine Tasche?','Do you have no bag?','kein',{bl:2,ch:po('kein'),why:'Tasche is feminine, so it is <b>keine</b>.'}),
+ s('Das ist keine Tür.','That is not a door.','kein',{bl:2,ch:po('kein'),why:'Tür is feminine, so it is <b>keine</b>.'})]),
+L(75,'Doch, vielleicht, natürlich','Answer more naturally. Reuses ja, nein, kein and the verb-second rule.','<b>Doch</b> means “yes” to a negative question: <b>Hast du keine Zeit? Doch!</b> After <b>vielleicht</b> or <b>natürlich</b> at the start, the verb stays second: <b>Vielleicht habe ich Zeit.</b>',[
+ v('doch','doch','yes (to a negative question)',['yes','yes but','yes to a negative question','but yes'],'dokh','answer word','Doch, ich habe Zeit.','Yes I do, I have time.','Short o. ch after o is the harsh throat sound.'),
+ v('vielleicht','vielleicht','maybe / perhaps',['maybe','perhaps'],'fee-LYKHT','adverb','Vielleicht habe ich Zeit.','Maybe I have time.','v is “f” here. ch after ei is the soft hiss from ich.'),
+ v('natuerlich','natürlich','of course',['of course','naturally'],'nah-TUER-likh','adverb','Natürlich kann ich arbeiten.','Of course I can work.','ü: round the lips and say “ee”. Stress the second syllable.')],[
+ s('Doch, ich habe Zeit.','Yes I do, I have time.','doch',{bwhy:'Doch contradicts a negative question. Then a normal sentence follows.'}),
+ s('Vielleicht habe ich Zeit.','Maybe I have time.','vielleicht',{bwhy:'Vielleicht comes first, so habe stays second and ich follows.'}),
+ s('Vielleicht ist der Bus hier.','Maybe the bus is here.','vielleicht',{bwhy:'Vielleicht comes first, so ist stays second.'}),
+ s('Natürlich kann ich arbeiten.','Of course I can work.','natuerlich',{bwhy:'Natürlich first, so kann stays second. Arbeiten goes to the end.'}),
+ s('Natürlich habe ich das Geld.','Of course I have the money.','natuerlich',{bwhy:'Natürlich first, so habe stays second.'})]),
+L(76,'Eine neue Tasche','Add adjectives before feminine nouns. Reuses eine, Tasche, Wohnung, Uhr and groß.','Before a noun, adjectives take an ending. After <b>eine</b> (feminine) it is <b>-e</b>: <b>eine neue Tasche</b>, <b>eine große Uhr</b>. After <b>ist</b> there is no ending, as before.',[
+ v('neu','neu','new',['new'],'noy','adjective','Ich habe eine neue Tasche.','I have a new bag.','eu sounds like “oy”.'),
+ v('alt','alt','old',['old'],'ahlt','adjective','Ich suche eine alte Uhr.','I am looking for an old clock.','Short a, and a clear lt.'),
+ v('schoen','schön','beautiful / nice',['beautiful','nice','pretty','lovely'],'shuhn','adjective','Das ist eine schöne Wohnung.','That is a beautiful apartment.','ö: round the lips as for “oh” and say “ay”.')],[
+ s('Ich habe eine neue Tasche.','I have a new bag.','neu',{bl:3,ch:aj('neu'),why:'After eine (feminine) the adjective ends in <b>-e</b>: neue.'}),
+ s('Das ist eine schöne Wohnung.','That is a beautiful apartment.','schoen',{bl:3,ch:aj('schön'),why:'After eine (feminine) the adjective ends in <b>-e</b>: schöne.'}),
+ s('Ich suche eine alte Uhr.','I am looking for an old clock.','alt',{bl:3,ch:aj('alt'),why:'After eine (feminine) the adjective ends in <b>-e</b>: alte.'}),
+ s('Sie hat eine große Tasche.','She has a big bag.','gross',{bl:3,ch:aj('groß'),why:'After eine (feminine) the adjective ends in <b>-e</b>: große.'}),
+ s('Das ist eine kleine Tür.','That is a small door.','klein',{bl:3,ch:aj('klein'),why:'After eine (feminine) the adjective ends in <b>-e</b>: kleine.'})]),
+L(77,'Ein neues Buch','Add adjectives before neuter nouns. Reuses ein, Buch, Haus, Zimmer, Hemd and Hotel.','After <b>ein</b> with a neuter noun, the adjective ends in <b>-es</b>: <b>ein neues Buch</b>, <b>ein großes Haus</b>. This is the same as the nominative and the accusative.',[
+ v('billig','billig','cheap',['cheap'],'BIL-likh','adjective','Ich kaufe ein billiges Hemd.','I buy a cheap shirt.','Short i. The ending -ig sounds like “ikh”.'),
+ v('warm','warm','warm',['warm'],'vahrm','adjective','Das ist ein warmes Zimmer.','That is a warm room.','w is “v”. Short a, and a soft r.'),
+ v('lang','lang','long',['long','tall'],'lahng','adjective','Das ist ein langes Buch.','That is a long book.','Short a, and the ng as in English “sing”.')],[
+ s('Ich habe ein neues Buch.','I have a new book.','neu',{bl:3,ch:aj('neu'),why:'After ein with a neuter noun the adjective ends in <b>-es</b>: neues.'}),
+ s('Das ist ein großes Haus.','That is a big house.','gross',{bl:3,ch:aj('groß'),why:'After ein with a neuter noun the adjective ends in <b>-es</b>: großes.'}),
+ s('Ich kaufe ein billiges Hemd.','I buy a cheap shirt.','billig',{bl:3,ch:aj('billig'),why:'After ein with a neuter noun the adjective ends in <b>-es</b>: billiges.'}),
+ s('Das ist ein warmes Zimmer.','That is a warm room.','warm',{bl:3,ch:aj('warm'),why:'After ein with a neuter noun the adjective ends in <b>-es</b>: warmes.'}),
+ s('Ich möchte ein altes Buch.','I would like an old book.','alt',{bl:3,ch:aj('alt'),why:'After ein with a neuter noun the adjective ends in <b>-es</b>: altes.'}),
+ s('Ich suche ein kleines Hotel.','I am looking for a small hotel.','klein',{bl:3,ch:aj('klein'),why:'After ein with a neuter noun the adjective ends in <b>-es</b>: kleines.'})]),
+L(78,'Ein neuer Tisch, einen neuen Tisch','Add adjectives before masculine nouns. Reuses einen, Tisch, Kaffee, Tee and Arzt.','Masculine is the tricky one. Subject: <b>ein neuer Tisch</b> (<b>-er</b>). Object: <b>einen neuen Tisch</b> (<b>-en</b>). The adjective follows the article.',[
+ v('frisch','frisch','fresh',['fresh'],'frish','adjective','Ich kaufe einen frischen Salat.','I buy a fresh salad.','sch is “sh”. Short i.'),
+ v('heiss','heiß','hot',['hot'],'hice','adjective','Das ist ein heißer Kaffee.','That is a hot coffee.','ß is a sharp s. ei sounds like “eye”.'),
+ nn('salat','der','Salat','salad','dair zah-LAHT','masculine','die Salate','Der Salat ist frisch.','The salad is fresh.','s before a vowel is voiced like z. Stress the last syllable.')],[
+ s('Das ist ein neuer Tisch.','That is a new table.','neu',{bl:3,ch:aj('neu'),why:'Tisch is masculine and is the subject here, so the adjective ends in <b>-er</b>: neuer.'}),
+ s('Ich habe einen neuen Tisch.','I have a new table.','neu',{bl:3,ch:aj('neu'),why:'Tisch is masculine and is the object, so the adjective ends in <b>-en</b>: neuen.'}),
+ s('Ich kaufe einen frischen Salat.','I buy a fresh salad.','frisch',{bl:3,ch:aj('frisch'),why:'Salat is masculine and is the object, so the adjective ends in <b>-en</b>: frischen.'}),
+ s('Das ist ein heißer Kaffee.','That is a hot coffee.','heiss',{bl:3,ch:aj('heiß'),why:'Kaffee is masculine and is the subject here, so the adjective ends in <b>-er</b>: heißer.'}),
+ s('Ich möchte einen heißen Tee.','I would like a hot tea.','heiss',{bl:3,ch:aj('heiß'),why:'Tee is masculine and is the object, so the adjective ends in <b>-en</b>: heißen.'}),
+ s('Das ist ein guter Arzt.','That is a good doctor.','gut',{bl:3,ch:aj('gut'),why:'Arzt is masculine and is the subject here, so the adjective ends in <b>-er</b>: guter.'})],['salat']),
+L(79,'Boss round: Adjektive','No new words. Mix all three genders, kein and adjective endings.','After <b>eine</b>: <b>-e</b>. After <b>ein</b> (neuter): <b>-es</b>. After <b>ein</b> (masculine subject): <b>-er</b>. After <b>einen</b> (masculine object): <b>-en</b>. After <b>kein</b>: same as ein.',[],[
+ s('Ich habe eine neue Wohnung.','I have a new apartment.','neu',{bl:3,ch:aj('neu'),why:'Wohnung is feminine, so after eine the ending is <b>-e</b>: neue.'}),
+ s('Das ist ein großes Zimmer.','That is a big room.','gross',{bl:3,ch:aj('groß'),why:'Zimmer is neuter, so after ein the ending is <b>-es</b>: großes.'}),
+ s('Ich suche einen kleinen Tisch.','I am looking for a small table.','klein',{bl:3,ch:aj('klein'),why:'Tisch is masculine and is the object, so the ending is <b>-en</b>: kleinen.'}),
+ s('Er hat keinen Kaffee.','He has no coffee.','kein',{bl:2,ch:po('kein'),why:'Kaffee is masculine and is the object, so it is <b>keinen</b>.'}),
+ s('Das ist ein neuer Mantel.','That is a new coat.','neu',{bl:3,ch:aj('neu'),why:'Mantel is masculine and is the subject here, so the ending is <b>-er</b>: neuer.'}),
+ s('Sie kauft eine blaue Hose.','She buys blue trousers.','blau',{bl:3,ch:aj('blau'),why:'Hose is feminine, so after eine the ending is <b>-e</b>: blaue.'}),
+ s('Ich habe kein altes Buch.','I have no old book.','alt',{bl:3,ch:aj('alt'),why:'Buch is neuter. After kein it works like ein: <b>-es</b>: altes.'})],['wohnung','zimmer']),
+L(80,'Für, ohne: for and without','Say who something is for. Reuses den, die, das, meinen, meine and the accusative.','<b>Für</b> (for) and <b>ohne</b> (without) always take the <b>accusative</b>: <b>für den Vater</b> (der → den), <b>für die Mutter</b>, <b>für das Kind</b>. <b>Ohne Milch</b> needs no article.',[
+ v('fuer','für','for',['for'],'fuer','preposition','Das Buch ist für die Mutter.','The book is for the mother.','ü: round the lips and say “ee”. A soft r at the end.'),
+ v('ohne','ohne','without',['without'],'OH-nuh','preposition','Ich trinke den Kaffee ohne Milch.','I drink the coffee without milk.','Long o. The final e is a relaxed “uh”.'),
+ nn('geschenk','das','Geschenk','gift','dahs geh-SHENK','neuter','die Geschenke','Das Geschenk ist für den Vater.','The gift is for the father.','sch is “sh”. Stress the second syllable.')],[
+ s('Das Geschenk ist für den Vater.','The gift is for the father.','geschenk',{bl:4,ch:D,why:'Vater is masculine. After für (accusative), der becomes <b>den</b>.'}),
+ s('Das Buch ist für die Mutter.','The book is for the mother.','fuer',{bl:4,ch:D,why:'Mutter is feminine, so die stays <b>die</b>.'}),
+ s('Das ist für meinen Bruder.','That is for my brother.','fuer',{bl:3,ch:po('mein'),why:'Bruder is masculine. After für (accusative) it is <b>meinen</b>.'}),
+ s('Ich kaufe das Geschenk für meine Schwester.','I buy the gift for my sister.','geschenk',{bl:5,ch:po('mein'),why:'Schwester is feminine, so it is <b>meine</b>.'}),
+ s('Ich trinke den Kaffee ohne Milch.','I drink the coffee without milk.','ohne',{bwhy:'After ohne, a general thing takes no article: Milch.'}),
+ s('Ich habe das Geschenk für das Kind.','I have the gift for the child.','geschenk',{bl:5,ch:D,why:'Kind is neuter, so das stays <b>das</b>.'})],['geschenk']),
+L(81,'Boss round: Geschenke','No new words. Combine für, kein, adjectives and the question words you know.','Check: <b>für + accusative</b> (den, die, das, meinen …), adjective endings, and verb second after Vielleicht or Natürlich.',[],[
+ s('Das ist ein neues Geschenk für meinen Bruder.','That is a new gift for my brother.','geschenk',{bwhy:'Geschenk is neuter, so ein neues. After für, Bruder takes meinen.'}),
+ s('Ich kaufe einen neuen Mantel für meine Mutter.','I buy a new coat for my mother.','mantel',{bwhy:'Mantel is masculine and is the object: einen neuen. Mutter is feminine: meine.'}),
+ s('Das Geschenk ist für den Freund.','The gift is for the friend.','freund',{bl:4,ch:D,why:'Freund is masculine. After für (accusative), der becomes <b>den</b>.'}),
+ s('Ich habe keine Zeit.','I have no time.','zeit',{bl:2,ch:po('kein'),why:'Zeit is feminine, so it is <b>keine</b>.'}),
+ s('Vielleicht kaufe ich ein großes Geschenk.','Maybe I buy a big gift.','vielleicht',{bwhy:'Vielleicht first, so kaufe stays second. Geschenk is neuter: großes.'}),
+ s('Doch, ich habe das Geld.','Yes I do, I have the money.','doch',{bwhy:'Doch contradicts a negative question. Then a normal sentence follows.'}),
+ s('Natürlich ist das Hemd für dein Kind.','Of course the shirt is for your child.','natuerlich',{bl:5,ch:po('dein'),why:'Kind is neuter, so it is <b>dein</b>.'})],['geschenk','zimmer'])
+];})());
+const IT={};LESSONS.forEach(l=>l.items.forEach(i=>{i.lesson=l.id;IT[i.id]=i}));
+const DAYS=[0,1,3,7,14,30];
+const $=s=>document.querySelector(s);
+const full=i=>i.art?i.art+' '+i.de:i.de;
+const gcls=i=>({das:'n',die:'f',der:'m'})[i.art]||'';
+const n=s=>s.toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/[.!?…,'’]/g,'').replace(/\s+/g,' ').trim();
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ---------- State ---------- */
+let G={xp:0,led:{},mist:{},done:[]};
+try{const s=JSON.parse(localStorage.getItem('deutsch-von-null'));if(s&&s.led)G=s}catch(e){}
+let streak=0,S=null;
+const save=()=>{try{localStorage.setItem('deutsch-von-null',JSON.stringify(G))}catch(e){}};
+const lvl=()=>Math.floor(G.xp/100)+1;
+
+function intro(id){if(!G.led[id])G.led[id]={c:0,w:0,box:0,ctx:[],due:Date.now()}}
+function rec(id,ctx,ok){intro(id);const l=G.led[id];
+  if(ok){l.c++;if(!l.ctx.includes(ctx))l.ctx.push(ctx);l.box=Math.min(5,l.box+1)}
+  else{l.w++;l.box=Math.max(0,l.box-2);const k=id+'|'+ctx;G.mist[k]=(G.mist[k]||0)+1}
+  l.due=Date.now()+DAYS[l.box]*864e5;save()}
+function status(id){const l=G.led[id];if(!l)return 'Not yet learned';
+  if(l.c>=4&&l.ctx.length>=3)return 'Used independently';
+  if(l.c>=2&&l.ctx.length>=2)return 'Recalled reliably';
+  if(l.c>=1)return 'Recalled once';return 'Practicing'}
+const dueIds=()=>Object.keys(G.led).filter(id=>G.led[id].due<=Date.now());
+
+/* ---------- Audio ---------- */
+function say(t){if(!('speechSynthesis' in window))return;speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t.replace(/…/g,''));u.lang='de-DE';u.rate=.8;
+  const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith('de'));if(v)u.voice=v;speechSynthesis.speak(u)}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-say]');if(b)say(b.dataset.say)});
+function audioNote(){const ok='speechSynthesis' in window;const de=ok&&speechSynthesis.getVoices().some(v=>v.lang&&v.lang.toLowerCase().startsWith('de'));
+  $('#audioNote').textContent=!ok?'Audio playback is not available in this browser. Use the written pronunciation guides.':
+  !de?'No German voice found on this device, so playback may sound English. '+micNote():
+  'Audio uses your device’s German voice. '+micNote()}
+if('speechSynthesis' in window)speechSynthesis.onvoiceschanged=audioNote;
+
+/* ---------- Questions ---------- */
+function itemQs(it){const q=[];
+  if(it.art)q.push({it:it.id,ctx:'article',kind:'mc',prompt:`Which article goes with <b>${it.de}</b> (${it.en.replace('the ','')})?`,choices:['der','die','das'],ans:it.art,
+    why:`${it.de} is ${it.gender}, so it is <b>${full(it)}</b>. Gender is not predictable from meaning, so learn each noun with its article.`});
+  q.push({it:it.id,ctx:'de→en',kind:'type',prompt:`What does <b>${esc(full(it))}</b> mean?`,acc:it.acc.map(n),ans:it.en,why:'Check the meaning in the lesson card.'});
+  q.push({it:it.id,ctx:'en→de',kind:'type',prompt:`How do you say <b>“${it.en}”</b> in German?${it.art?' Include the article.':''}`,acc:[n(full(it)),...(it.accDe||[]).map(n)],ans:full(it),
+    why:it.art?`Noun and article together: <b>${full(it)}</b> (${it.gender}).`:`The German is <b>${it.de}</b>.`,noun:it.art?n(it.de):null});
+  q.push({it:it.id,ctx:'speak',kind:'speak',prompt:`Say it aloud, slowly: <b>${esc(it.ex)}</b>`,say:it.ex,ans:it.ex,sub:it.pron+' · '+it.exEn,why:'Use Hear it, listen closely, then compare each word with your own.'});
+  return q}
+function sentQs(l){const q=[];l.sents.forEach(s=>{
+  q.push({it:s.it,ctx:'build',kind:'tiles',prompt:`Build the sentence: <b>“${s.en}”</b>`,toks:s.de.split(' '),ans:s.de,why:s.bwhy||'In a German statement the verb stays in second position. Yes/no questions start with the verb.'});
+  const t=s.de.split(' ');const a=t[s.bl];if(s.bl==null)return;
+  q.push({it:s.it,ctx:'article-in-sentence',kind:'mc',prompt:`Fill the gap: <b>${t.map((w,i)=>i==s.bl?'___':w).join(' ')}</b><br><span class="tag">${s.en}</span>`,choices:s.ch||(['ein','eine'].includes(a)?['ein','eine']:['der','die','das']),ans:a,why:s.why||`${IT[s.it].de} is ${IT[s.it].gender}: <b>${full(IT[s.it])}</b>.`})});return q}
+function plQ(id){const it=IT[id];return {it:id,ctx:'plural',kind:'type',prompt:`What is the plural of <b>${esc(full(it))}</b>? (Start with die.)`,acc:[n(it.plural),n(it.plural.replace('die ',''))],ans:it.plural,why:`Plurals are mostly irregular, so learn them with the noun: <b>${esc(full(it))}</b> → <b>${it.plural}</b>.`}}
+function reviewQs(ids){return ids.flatMap(id=>{const it=IT[id];const pool=itemQs(it).filter(q=>q.kind!=='speak');return [shuf(pool)[0]]}).map(q=>({...q,review:true}))}
+
+/* ---------- Views ---------- */
+function stats(){$('#stats').innerHTML=`<span>Lv <b>${lvl()}</b></span><span><b>${G.xp}</b> XP</span><span>Streak <b>${streak}</b></span>`}
+function view(h){stats();$('#app').innerHTML=h;window.scrollTo(0,0)}
+const unlocked=i=>i===0||G.done.includes(LESSONS[i-1].id);
+
+function home(){S=null;const due=dueIds();
+  view(`<div class="card"><p class="q" style="margin-top:0">Willkommen! Start from zero, one small step at a time.</p>
+  <p>Each lesson teaches a few words, then makes you recall them, build sentences with them and say them. Old words keep coming back on a schedule.</p></div>`+
+  LESSONS.map((l,i)=>`<div class="card lesson"><div><h3>Lesson ${l.id}: ${l.title}</h3><p>${l.goal}</p>${G.done.includes(l.id)?'<p>Completed. Replay any time.</p>':''}</div>
+  <button class="p" ${unlocked(i)?'':'disabled'} onclick="startLesson(${i})">${G.done.includes(l.id)?'Replay':unlocked(i)?'Start':'Locked'}</button></div>`).join('')+
+  `<div class="row"><button onclick="startReview()" ${due.length?'':'disabled'}>Review due words (${due.length})</button><button onclick="progress()">Progress and ledger</button></div>`)}
+
+function startLesson(i){const l=LESSONS[i];S={li:i,phase:'learn',ci:0,cards:[...l.items,'sents']};learnView()}
+function learnView(){const l=LESSONS[S.li],c=S.cards[S.ci],last=S.ci===S.cards.length-1;
+  let body;
+  if(c==='sents'){body=`<p class="tag">Put it together</p><p class="q">Now these words work as sentences.</p>`+l.sents.map(s=>`<div class="sent"><div><b>${s.de}</b><small>${s.en}</small></div><button data-say="${s.de}" aria-label="Hear ${s.de}">Hear</button></div>`).join('')+
+    `<p class="note">${l.note||'The word order is the same each time: a first word, then <b>ist</b>, then the thing.'}</p>`}
+  else{intro(c.id);save();body=`<p class="tag">${c.type}${c.gender?' · '+c.gender:''}</p>
+  <div class="de ${gcls(c)}">${esc(full(c))}</div><div class="pron">${c.pron}</div>
+  <dl class="meta"><dt>Meaning</dt><dd>${c.en}</dd>${c.plural?`<dt>Plural</dt><dd>${c.plural}</dd>`:''}${c.parts?`<dt>Breakdown</dt><dd>${c.parts}</dd>`:''}<dt>Example</dt><dd><b>${c.ex}</b><br>${c.exEn}</dd></dl>
+  <div class="tip">${c.tip}</div><button data-say="${esc(full(c))}">Hear word</button> <button data-say="${c.ex}">Hear example</button>`}
+  view(`<div class="card"><div class="bar"><i style="width:${(S.ci+1)/S.cards.length*100}%"></i></div>${body}
+  <div class="row"><button onclick="home()">Exit</button><button class="p" onclick="${last?'startQuiz()':'S.ci++;learnView()'}">${last?'Start challenge':'Next'}</button></div></div>`)}
+
+function startQuiz(){const l=LESSONS[S.li];
+  const prev=dueIds().filter(id=>IT[id].lesson<l.id);
+  const rev=reviewQs(shuf(prev).slice(0,3));
+  S.q=[...rev,...shuf(l.items.flatMap(itemQs)),...shuf(sentQs(l)),...shuf((l.plurals||[]).map(plQ))];S.qi=0;S.right=0;S.total=0;S.phase='quiz';S.lessonId=l.id;quizView()}
+function startReview(){const ids=shuf(dueIds()).slice(0,8);S={li:-1,phase:'quiz',q:reviewQs(ids),qi:0,right:0,total:0};quizView()}
+
+function quizView(){if(S.qi>=S.q.length)return finish();
+  const q=S.q[S.qi];S.cur=q;S.tray=[];
+  let ui='';
+  if(q.kind==='mc')ui=`<div class="row">${q.choices.map(c=>`<button class="mc" data-c="${c}">${c}</button>`).join('')}</div>`;
+  if(q.kind==='type')ui=`<input type="text" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Your answer"><div class="row"><button class="p" id="chk">Check</button></div>`;
+  if(q.kind==='tiles'){S.pool=shuf(q.toks.map((t,i)=>({t,i})));ui=`<div class="tray" id="tray" aria-label="Your sentence"></div><div class="tiles row" id="pool"></div><div class="row"><button onclick="resetTiles()">Reset</button><button class="p" id="chk">Check</button></div>`}
+  if(q.kind==='speak')ui=`<p class="tag">${q.sub}</p><div class="row"><button data-say="${esc(q.say)}">Hear it</button><button class="p" id="said">I said it aloud</button></div><div id="heard"></div>`;
+  view(`<div class="card"><div class="bar"><i style="width:${S.qi/S.q.length*100}%"></i></div>
+  <p class="tag">${q.review?'Review':q.ctx}</p><p class="q">${q.prompt}</p>${ui}<div id="fb"></div></div>`);
+  if(q.kind==='mc')document.querySelectorAll('.mc').forEach(b=>b.onclick=()=>grade(b.dataset.c===q.ans,b.dataset.c));
+  if(q.kind==='type'){const a=$('#ans');a.focus();const go=()=>{const v=a.value;if(!v.trim())return;const nv=n(v);
+    grade(q.acc.includes(nv),v,q.noun&&nv.endsWith(' '+q.noun)||nv===q.noun?'article':null)};$('#chk').onclick=go;a.onkeydown=e=>{if(e.key==='Enter')go()}}
+  if(q.kind==='tiles'){drawTiles();$('#chk').onclick=()=>{if(!S.tray.length)return;const v=S.tray.map(x=>x.t).join(' ');grade(v===q.ans,v)}}
+  if(q.kind==='speak')setupSpeak(q)}
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function micNote(){return SR?'The microphone check listens for German and compares your words with the target. It does not score your accent. In Chrome the audio is processed by Google’s speech service.':'This browser has no speech recognition (try Chrome, Edge or Safari), so speaking exercises are self-checked.'}
+function setupSpeak(q){const said=$('#said');said.onclick=()=>grade(true,'(self-checked)');
+  if(!SR){said.textContent='I said it aloud (self-check)';return}
+  const mic=document.createElement('button');mic.className='p';mic.textContent='Speak now';said.parentNode.insertBefore(mic,said);
+  said.className='';said.textContent='Skip: self-check';
+  const T=q.say.split(' ').map(n).filter(Boolean);let tries=0;
+  const out=h=>$('#heard').innerHTML=h;
+  mic.onclick=()=>{let r;try{r=new SR()}catch(e){return}
+    r.lang='de-DE';r.maxAlternatives=3;r.interimResults=false;
+    mic.disabled=true;mic.textContent='Listening…';out('');let got=false;
+    r.onresult=e=>{got=true;const alts=[...e.results[0]].map(a=>a.transcript);
+      const score=a=>{const w=new Set(a.split(' ').map(n));return T.filter(t=>w.has(t)).length};
+      const best=alts.sort((a,b)=>score(b)-score(a))[0];const w=new Set(best.split(' ').map(n));
+      const marked=q.say.split(' ').map(x=>`<span class="${w.has(n(x))?'hit':'miss'}">${esc(x)}</span>`).join(' ');
+      if(T.every(t=>w.has(t))){grade(true,best,'heard');return}
+      tries++;
+      out(`<div class="fb bad"><div><b>Target:</b> ${marked}</div><div><b>Heard:</b> ${esc(best)}</div><div>Underlined words were not recognized. Use Hear it, then try again. A match only means the recognizer understood you.</div>${tries>=2?'<div class="row"><button id="mv">Move on</button></div>':''}</div>`);
+      const mv=$('#mv');if(mv)mv.onclick=()=>grade(false,best)};
+    r.onerror=e=>{got=true;out(`<div class="fb bad">${e.error==='not-allowed'||e.error==='service-not-allowed'?'Microphone blocked. Allow microphone access for this page, or use Skip: self-check.':e.error==='no-speech'?'No speech heard. Check your microphone and try again.':'Speech recognition failed ('+esc(e.error)+'). Try again or use Skip: self-check.'}</div>`)};
+    r.onend=()=>{if(S.locked)return;if(!got)out('<div class="fb bad">Nothing was recognized. Speak right after pressing the button.</div>');mic.disabled=false;mic.textContent=tries?'Try again':'Speak now'};
+    r.start()}}
+function drawTiles(){$('#tray').innerHTML=S.tray.map((x,k)=>`<button onclick="untile(${k})">${esc(x.t)}</button>`).join('');
+  $('#pool').innerHTML=S.pool.map((x,k)=>`<button onclick="tile(${k})">${esc(x.t)}</button>`).join('')}
+function tile(k){S.tray.push(S.pool.splice(k,1)[0]);drawTiles()}
+function untile(k){S.pool.push(S.tray.splice(k,1)[0]);drawTiles()}
+function resetTiles(){S.pool=S.pool.concat(S.tray);S.tray=[];drawTiles()}
+
+function grade(ok,given,hint){const q=S.cur;if(S.locked)return;S.locked=true;
+  document.querySelectorAll('#app button,#app input').forEach(b=>{if(!b.hasAttribute('data-say'))b.disabled=true});
+  if(!q.retry||ok){S.total++}
+  rec(q.it,q.ctx==='speak'?'speak':q.ctx,ok);
+  let fb;
+  if(ok){streak++;const xp=q.kind==='speak'?(hint==='heard'?8:3):q.retry?5:10;G.xp+=xp;if(!q.retry)S.right++;
+    fb=`<div class="fb ok"><div><b>Richtig!</b> +${xp} XP</div>${q.kind==='speak'&&given==='(self-checked)'?'<div class="note">This was your own check, so no accuracy is recorded.</div>':''}${hint==='heard'?'<div class="note">The recognizer understood every word. That shows you were understandable, not that your accent is perfect.</div>':''}</div>`}
+  else{streak=0;
+    const lab=q.ctx==='de→en'?'Correct meaning':'Correct German';
+    fb=`<div class="fb bad"><div><b>My answer:</b> ${esc(given)}</div><div><b>${lab}:</b> ${esc(q.ans)}</div>
+    <div><b>What changed:</b> ${hint==='article'?'The noun is right, but the article is wrong. ':''}${q.why}</div><div><b>Try again:</b> this one comes back in a few questions.</div></div>`;
+    const re={...q,retry:true};S.q.splice(Math.min(S.q.length,S.qi+4),0,re)}
+  save();stats();
+  $('#fb').innerHTML=fb+`<div class="row"><button class="p" id="nx">Next</button></div>`;
+  const nx=$('#nx');nx.focus();nx.onclick=()=>{S.locked=false;S.qi++;quizView()}}
+
+function finish(){const l=LESSONS[S.li];
+  if(l&&!G.done.includes(l.id)){G.done.push(l.id);save()}
+  const ids=l?l.items.map(i=>i.id):[];
+  const nxt=l&&LESSONS[S.li+1];
+  view(`<div class="card"><p class="tag">${l?'Lesson '+l.id+' complete':'Review complete'}</p><p class="q">${S.right} of ${S.total} answered correctly first time.</p>
+  <p>${S.right===S.total?'Clean run. Tomorrow’s review will still check it, because one session does not make a word stick.':'The missed items have been scheduled to return sooner.'}</p>
+  ${ids.length?`<table><tr><th>Word</th><th>Status</th></tr>${ids.map(id=>`<tr><td>${esc(full(IT[id]))}</td><td>${status(id)}</td></tr>`).join('')}</table>`:''}
+  <div class="row">${nxt?`<button class="p" onclick="startLesson(${S.li+1})">Next: Lesson ${nxt.id}</button>`:''}<button onclick="progress()">Progress and ledger</button><button onclick="home()">Home</button></div></div>`)}
+
+function progress(){const ids=Object.keys(G.led);
+  const nouns=ids.filter(id=>IT[id].art&&G.led[id].ctx.includes('article')&&G.led[id].c>=2).length;
+  const mist=Object.entries(G.mist).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const led=JSON.stringify({level:'A0 (beginner, not formally assessed)',xp:G.xp,lessonsDone:G.done,ledger:G.led,mistakes:G.mist});
+  view(`<div class="card"><p class="q" style="margin-top:0">Progress snapshot</p>
+  <dl class="meta"><dt>Estimated level</dt><dd>A0, just starting (an estimate, not a test result)</dd><dt>Lesson</dt><dd>${G.done.length} of ${LESSONS.length} completed</dd>
+  <dt>Words introduced</dt><dd>${ids.length} of the 20,000 target</dd><dt>Nouns with article recalled</dt><dd>${nouns}</dd><dt>XP / level</dt><dd>${G.xp} / ${lvl()}</dd><dt>Review due</dt><dd>${dueIds().length}</dd>
+  <dt>Recurring mistakes</dt><dd>${mist.length?mist.map(m=>m[0].replace('|',' · ')+' ×'+m[1]).join('<br>'):'none yet'}</dd></dl>
+  ${ids.length?`<table><tr><th>Word</th><th>Status</th><th>Next review</th></tr>${ids.map(id=>{const l=G.led[id],d=Math.max(0,Math.ceil((l.due-Date.now())/864e5));return `<tr><td>${esc(full(IT[id]))}</td><td>${status(id)}</td><td>${d?'in '+d+' d':'now'}</td></tr>`}).join('')}</table>`:'<p>No words yet. Start Lesson 1.</p>'}</div>
+  <div class="card"><p><b>Portable ledger</b></p><p class="note">Copy this text and keep it somewhere safe. Paste it below later to restore your progress, for example on another device.</p>
+  <textarea id="led" aria-label="Ledger">${esc(led)}</textarea>
+  <div class="row"><button onclick="navigator.clipboard&&navigator.clipboard.writeText($('#led').value)">Copy ledger</button><button class="p" onclick="imp()">Restore from text</button><button onclick="home()">Home</button></div><div id="imsg" class="note"></div></div>`)}
+function imp(){try{const o=JSON.parse($('#led').value);if(!o.ledger)throw 0;G={xp:o.xp||0,led:o.ledger,mist:o.mistakes||{},done:o.lessonsDone||[]};save();stats();$('#imsg').textContent='Progress restored.'}catch(e){$('#imsg').textContent='That text is not a valid ledger.'}}
+
+audioNote();home();
+</script>
+</body>
+</html>
